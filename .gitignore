@@ -1,0 +1,114 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.env
+.venv
+env.bak/
+venv.bak/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+*.sublime-workspace
+*.sublime-project
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Model files and large data
+*.h5
+*.pkl
+*.pt
+*.pth
+*.onnx
+*.bin
+*.model
+*.weights
+checkpoints/
+wandb/
+
+# Dataset files
+*.csv
+*.json
+*.jsonl
+*.tsv
+*.txt
+!requirements.txt
+!configs/*.yaml
+!configs/*.yml
+data/
+datasets/
+
+# Logs and results
+logs/
+results/
+*.log
+tensorboard/
+runs/
+wandb/
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Distribution
+*.tar.gz
+*.zip
+*.rar
+
+# Environment variables
+.env
+.env.*
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Project specific
+adversarial_examples/
+perturbed_data/
+model_outputs/
+benchmark_results/
+
+# Data
+data/
+
+# Results
+results/
