@@ -1,0 +1,25 @@
+models:
+  gemma3:27b:
+    type: "ollama"
+    model_name: "gemma3:27b"
+    max_tokens: 128000 # 128k max tokens context window
+    temperature: 1
+    top_k: 64
+    top_p: 0.95
+
+tasks:
+  vqa_rad:
+    type: "vqa_rad"
+    data_path: "data/VQA_RAD"
+    split: ["test"]
+
+logging:
+  wandb:
+    project: "multimodal-benchmarks"
+    entity: "vqa_rad"
+  save_predictions: true
+  output_dir: "results"
+
+device: "cuda"
+batch_size: 8
+num_workers: 4
