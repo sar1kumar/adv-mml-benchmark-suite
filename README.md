@@ -24,8 +24,8 @@ A comprehensive benchmark suite for evaluating multimodal language models across
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/sar1kumar/multimodal-benchmark-suite.git
-cd multimodal-benchmark-suite
+git clone https://github.com/sar1kumar/adv-mml-benchmark-suite.git
+cd adv-mml-benchmark-suite
 ```
 
 2. Install dependencies:
