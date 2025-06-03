@@ -10,8 +10,6 @@ def download_file(url, destination_folder, chunk_size=8192):
     os.makedirs(destination_folder, exist_ok=True)
     local_filename = os.path.join(destination_folder, url.split('/')[-1] if url.split('/')[-1] else "downloaded_file")
     
-    # If the URL ends with ?zip=, it means it's a zip file but the name is not in the URL
-    # We'll name it based on the resource ID if possible, or a generic name.
     if "?zip=" in url:
         try:
             resource_id = url.split('/resources/')[1].split('/')[0]
@@ -93,8 +91,6 @@ def prepare_vqa_rad_data(output_base_dir):
         os.rmdir(temp_download_dir)
     elif temp_download_dir != vqa_rad_data_dir : # only remove if it's a separate temp dir
         # if extraction created subfolders within temp_download_dir, this might not clean everything
-        # but the zip is gone, which is the main thing.
-        # A more robust cleanup might be needed if extraction is complex.
         pass
 
 
@@ -106,10 +102,6 @@ def main():
                         help="The base directory where the task-specific data folder will be created (e.g., data/). The script will create a subfolder named after the task (e.g. data/vqa_rad).")
 
     args = parser.parse_args()
-
-    # The user provides a base path like 'data/', and the script creates 'data/vqa_rad/'
-    # Or if user provides 'data/vqa_rad', that's also fine.
-    # Let's ensure the output path refers to the specific task folder.
     
     task_output_dir = args.output # The user will specify the full path like 'data/vqa_rad'
 
@@ -122,7 +114,7 @@ def main():
     elif args.task == "all":
         print("Preparing all datasets...")
         # Call each preparation function
-        prepare_vqa_rad_data(os.path.join(args.output, "vqa_rad")) # Example: creates data/vqa_rad if output is data/
+        prepare_vqa_rad_data(os.path.join(args.output, "vqa_rad"))
         # Add other tasks here: prepare_other_task_data(os.path.join(args.output, "other_task"))
         print("All dataset preparation finished.")
     else:
