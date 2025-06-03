@@ -45,9 +45,9 @@ pip install -r requirements.txt
 
 ## Dataset Preparation
 
-1. MMLU:
+1. SME:
 ```bash
-python scripts/prepare_data.py --task mmlu --output data/mmlu
+python scripts/prepare_data.py --task sme --output data/sme
 ```
 
 2. VQA-RAD:
