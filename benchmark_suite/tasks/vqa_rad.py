@@ -1,0 +1,143 @@
+import os
+import json
+from typing import Dict, List, Any, Tuple
+from datetime import datetime
+from .base_task import BaseTask
+from ..models.base_model import BaseModel
+
+class VQARADTask(BaseTask):
+    def __init__(self, config: Dict[str, Any]):
+        super().__init__(config)
+        self.data_path = config["data_path"]
+        self.split = config.get("split", ["train", "val", "test"])
+        self.output_dir = config.get("output_dir", "results")
+        self.data = {}
+        self.question_types = ["PRES", "MODALITY", "ORGAN", "POS", "ABN"]
+        self.answer_types = ["CLOSED", "OPEN"]
+        
+    def load_data(self) -> None:
+        """Load VQA-RAD dataset"""
+        json_file = os.path.join(self.data_path, "VQA_RAD Dataset Public.json")
+        if not os.path.exists(json_file):
+            raise FileNotFoundError(f"VQA-RAD data not found at {json_file}")
+            
+        with open(json_file, 'r') as f:
+            all_data = json.load(f)
+            
+        # Split data based on phrase_type
+        for item in all_data:
+            split_name = item["phrase_type"].replace("_freeform", "") # ToDo - add other splits for different phrase_types and modalities
+            if split_name not in self.data:
+                self.data[split_name] = []
+            self.data[split_name].append(item)
+                
+    def format_prompt(self, example: Dict[str, Any]) -> str:    #ToDo - add other prompt formats for different phrase_types and modalities
+        """Format VQA-RAD question with context about the image"""
+        prompt = "You are a medical imaging expert. Answer the following question about the radiology image.\n\n"
+        prompt += f"Image Organ: {example['image_organ']}\n"
+        prompt += f"Question Type: {example['question_type']}\n"
+        prompt += f"Question: {example['question']}\n"
+        
+        if example['answer_type'] == 'CLOSED':
+            prompt += "This is a yes/no question. Answer with 'Yes' or 'No' only.\n"
+        else:
+            prompt += "Provide a concise and accurate answer.\n"
+            
+        prompt += "Answer: "
+        return prompt
+        
+    def compute_metrics(self, predictions: List[str], targets: List[str], 
+                       question_types: List[str], answer_types: List[str]) -> Dict[str, float]:
+        """Compute metrics with breakdown by question and answer types"""
+        metrics = {}
+        
+        # Overall accuracy
+        correct = sum(p.strip() == t.strip() for p, t in zip(predictions, targets))
+        metrics['accuracy'] = correct / len(predictions)
+        
+        # Per question type accuracy
+        for q_type in self.question_types:
+            q_type_indices = [i for i, qt in enumerate(question_types) if qt == q_type]
+            if q_type_indices:
+                q_type_preds = [predictions[i] for i in q_type_indices]
+                q_type_targets = [targets[i] for i in q_type_indices]
+                correct = sum(p.strip() == t.strip() for p, t in zip(q_type_preds, q_type_targets))
+                metrics[f'{q_type.lower()}_accuracy'] = correct / len(q_type_indices)
+        
+        # Per answer type accuracy
+        for a_type in self.answer_types:
+            a_type_indices = [i for i, at in enumerate(answer_types) if at == a_type]
+            if a_type_indices:
+                a_type_preds = [predictions[i] for i in a_type_indices]
+                a_type_targets = [targets[i] for i in a_type_indices]
+                correct = sum(p.strip() == t.strip() for p, t in zip(a_type_preds, a_type_targets))
+                metrics[f'{a_type.lower()}_accuracy'] = correct / len(a_type_indices)
+        
+        return metrics
+        
+    def evaluate(self, model: BaseModel) -> Dict[str, float]:
+        """Generate predictions for VQA-RAD task and store in JSON file"""
+        if not self.data:
+            self.load_data()
+            
+        # Create output directory if it doesn't exist
+        os.makedirs(self.output_dir, exist_ok=True)
+        
+        # Prepare results structure
+        results = {
+            "metadata": {
+                "model_name": model.__class__.__name__,
+                "timestamp": datetime.now().isoformat(),
+                "dataset": "VQA-RAD",
+                "splits": self.split
+            },
+            "predictions": []
+        }
+        
+        for split_name in self.split:
+            if split_name not in self.data:
+                continue
+                
+            split_data = self.data[split_name]
+            
+            for example in split_data:
+                # Get image path from the image name
+                image_path = os.path.join(self.data_path, "VQA_RAD Image Folder", example["image_name"])
+                if not os.path.exists(image_path):
+                    print(f"Warning: Image not found at {image_path}")
+                    continue
+                    
+                prompt = self.format_prompt(example)
+                
+                # Get model prediction
+                prediction = model.process_image(image_path, prompt).strip()
+                
+                # Store prediction and ground truth
+                result_entry = {
+                    "split": split_name,
+                    "qid": example["qid"],
+                    "image_name": example["image_name"],
+                    "image_organ": example["image_organ"],
+                    "question_type": example["question_type"],
+                    "answer_type": example["answer_type"],
+                    "question": example["question"],
+                    "ground_truth": example["answer"],
+                    "model_prediction": prediction,
+                    "prompt": prompt
+                }
+                results["predictions"].append(result_entry)
+        
+        # Save results to JSON file
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_file = os.path.join(self.output_dir, f"vqa_rad_predictions_{timestamp}.json")
+        
+        with open(output_file, 'w') as f:
+            json.dump(results, f, indent=2)
+            
+        print(f"Predictions saved to {output_file}")
+        
+        # Return basic stats
+        return {
+            "total_predictions": len(results["predictions"]),
+            "output_file": output_file
+        }
