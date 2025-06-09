@@ -12,16 +12,14 @@ class GeminiModel(BaseModel):
             raise ValueError("Gemini API key not found in config or environment")
             
         self.model_name = config.get("model_name", "gemini-pro")
-        self.max_tokens = config.get("max_tokens", 2048)
-        self.temperature = config.get("temperature", 0.1)
+        self.max_tokens = config.get("max_tokens", 128000)
+        self.temperature = config.get("temperature", 0.95)
         self.model = None
-        self.vision_model = None
         
     def load_model(self) -> None:
         """Initialize Gemini models"""
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel(self.model_name)
-        self.vision_model = genai.GenerativeModel('gemini-pro-vision')
         
     def generate(self, prompt: Union[str, List[str]], **kwargs) -> Union[str, List[str]]:
         """Generate response(s) for the given prompt(s)"""
@@ -49,20 +47,21 @@ class GeminiModel(BaseModel):
         )
         return response.text
         
-    def process_image(self, image_path: str, prompt: str, **kwargs) -> str:
+    def process_image(self, image_path: str, prompt: str, **kwargs) -> Dict[str, Any]:
         """Process image and text prompt for VQA tasks"""
-        if not self.vision_model:
+        if not self.model:
             self.load_model()
             
         image = Image.open(image_path)
-        response = self.vision_model.generate_content(
+        response = self.model.generate_content(
             [prompt, image],
             generation_config=genai.types.GenerationConfig(
                 temperature=self.temperature,
                 max_output_tokens=self.max_tokens,
             )
         )
-        return response.text
+        answer = response.text
+        return {"response": answer}
         
     def process_video(self, video_path: str, prompt: str, **kwargs) -> str:
         """Process video and text prompt for video-based tasks"""
