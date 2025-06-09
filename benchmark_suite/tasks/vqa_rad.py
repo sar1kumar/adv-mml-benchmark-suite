@@ -2,8 +2,8 @@ import os
 import json
 from typing import Dict, List, Any, Tuple
 from datetime import datetime
-from .base_task import BaseTask
-from ..models.base_model import BaseModel
+from benchmark_suite.tasks.base_task import BaseTask
+from benchmark_suite.models.base_model import BaseModel
 
 class VQARADTask(BaseTask):
     def __init__(self, config: Dict[str, Any]):
@@ -11,6 +11,8 @@ class VQARADTask(BaseTask):
         self.data_path = config["data_path"]
         self.split = config.get("split", ["train", "val", "test"])
         self.output_dir = config.get("output_dir", "results")
+        self.sample_size = config.get("sample_size", None)
+        self.random_seed = config.get("random_seed", 42)
         self.data = {}
         self.question_types = ["PRES", "MODALITY", "ORGAN", "POS", "ABN"]
         self.answer_types = ["CLOSED", "OPEN"]
@@ -26,12 +28,12 @@ class VQARADTask(BaseTask):
             
         # Split data based on phrase_type
         for item in all_data:
-            split_name = item["phrase_type"].replace("_freeform", "") # ToDo - add other splits for different phrase_types and modalities
+            split_name = item["phrase_type"].replace("_freeform", "") #TODO - add other splits for different phrase_types and modalities
             if split_name not in self.data:
                 self.data[split_name] = []
             self.data[split_name].append(item)
                 
-    def format_prompt(self, example: Dict[str, Any]) -> str:    #ToDo - add other prompt formats for different phrase_types and modalities
+    def format_prompt(self, example: Dict[str, Any]) -> str:    #TODO - add other prompt formats for different phrase_types and modalities
         """Format VQA-RAD question with context about the image"""
         prompt = "You are a medical imaging expert. Answer the following question about the radiology image.\n\n"
         prompt += f"Image Organ: {example['image_organ']}\n"
@@ -110,8 +112,9 @@ class VQARADTask(BaseTask):
                 prompt = self.format_prompt(example)
                 
                 # Get model prediction
-                prediction = model.process_image(image_path, prompt).strip()
+                prediction = model.process_image(image_path, prompt)
                 
+                model_answer = str(prediction.get("response", "")).strip()
                 # Store prediction and ground truth
                 result_entry = {
                     "split": split_name,
@@ -123,7 +126,8 @@ class VQARADTask(BaseTask):
                     "question": example["question"],
                     "ground_truth": example["answer"],
                     "model_prediction": prediction,
-                    "prompt": prompt
+                    "prompt": prompt,
+                    "time_metrics": prediction.get("ollama_metrics", {})
                 }
                 results["predictions"].append(result_entry)
         
@@ -140,4 +144,5 @@ class VQARADTask(BaseTask):
         return {
             "total_predictions": len(results["predictions"]),
             "output_file": output_file
+            #TODO: Add evalution metrics here (accuracy, Bleu score, etc.) computed from the predictions and ground truths.
         }
