@@ -90,18 +90,59 @@ def prepare_vqa_rad_data(output_base_dir):
     if not os.listdir(temp_download_dir):
         os.rmdir(temp_download_dir)
     elif temp_download_dir != vqa_rad_data_dir : # only remove if it's a separate temp dir
-        # if extraction created subfolders within temp_download_dir, this might not clean everything
+        pass
+
+def prepare_sme_data(output_base_dir):
+    """Prepares data for the SME task."""
+    print(f"Preparing SME data in {output_base_dir}...")
+    sme_images_url = "https://downloads.cs.stanford.edu/nlp/data/gqa/images.zip"
+    sme_questions_url = "https://github.com/LivXue/FS-MEVQA/raw/refs/heads/main/dataset/dataset.zip"
+    # Create a temporary download directory
+    temp_download_dir = os.path.join(output_base_dir, "temp_download_sme")
+    os.makedirs(temp_download_dir, exist_ok=True)
+
+    zip_filename = download_file(sme_images_url, temp_download_dir)
+    
+    if not zip_filename:
+        print("Failed to download SME data. Aborting.")
+        shutil.rmtree(temp_download_dir)
+        return
+
+    # Create the final SME data directory
+    sme_data_dir = output_base_dir # User specifies the final data/sme dir
+    os.makedirs(sme_data_dir, exist_ok=True)
+
+    # Extract directly into the final directory
+    if not extract_zip(zip_filename, sme_data_dir):
+        print("Failed to extract SME data. Aborting.")
+        shutil.rmtree(temp_download_dir)
+        return
+        
+    print("SME data preparation complete.")
+    print(f"Data should be in: {sme_data_dir}")
+    print("Expected contents: 'images' folder with SME dataset images.")
+
+    # Clean up the downloaded zip file
+    os.remove(zip_filename)
+    # Remove the temporary download directory if it's empty
+    if not os.listdir(temp_download_dir):
+        os.rmdir(temp_download_dir)
+    elif temp_download_dir != sme_data_dir: # only remove if it's a separate temp dir
         pass
 
 
 def main():
     parser = argparse.ArgumentParser(description="Download and prepare benchmark datasets.")
-    parser.add_argument("--task", type=str, required=True, choices=["vqa_rad", "all"], # Add more tasks as needed
+    parser.add_argument("--task", type=str, required=True, choices=["vqa_rad", "sme", "all"], # Add more tasks as needed
                         help="The specific task to prepare data for, or 'all'.")
     parser.add_argument("--output", type=str, required=True,
                         help="The base directory where the task-specific data folder will be created (e.g., data/). The script will create a subfolder named after the task (e.g. data/vqa_rad).")
 
     args = parser.parse_args()
+
+    # The user provides a base path like 'data/', and the script creates 'data/vqa_rad/'
+    # Or if user provides 'data/vqa_rad', that's also fine.
+    # Let's ensure the output path refers to the specific task folder.
     
     task_output_dir = args.output # The user will specify the full path like 'data/vqa_rad'
 
@@ -111,10 +152,13 @@ def main():
 
     if args.task == "vqa_rad":
         prepare_vqa_rad_data(task_output_dir)
+    elif args.task == "sme":
+        prepare_sme_data(task_output_dir)
     elif args.task == "all":
         print("Preparing all datasets...")
         # Call each preparation function
-        prepare_vqa_rad_data(os.path.join(args.output, "vqa_rad"))
+        prepare_vqa_rad_data(os.path.join(args.output, "vqa_rad")) # Example: creates data/vqa_rad if output is data/
+        prepare_sme_data(os.path.join(args.output, "sme"))
         # Add other tasks here: prepare_other_task_data(os.path.join(args.output, "other_task"))
         print("All dataset preparation finished.")
     else:
