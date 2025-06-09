@@ -25,7 +25,7 @@ class GemmaModel(BaseModel):
         except Exception as e:
             raise RuntimeError(f"Failed to connect to Ollama: {str(e)}")
             
-    def _call_ollama(self, prompt: str, images: List[str] = None) -> str:
+    def _call_ollama(self, prompt: str, images: List[str] = None) -> Dict[str, Any]:
         """Make API call to Ollama"""
         payload = {
             "model": self.model_name,
@@ -43,15 +43,31 @@ class GemmaModel(BaseModel):
             payload["images"] = images
         
         response = requests.post(self.ollama_url, json=payload)
-        return response.json()["response"]
+        response_json = response.json()
+
+        ollama_eval_duration_ns = response_json.get("eval_duration", 0)
+        evaluation_seconds = ollama_eval_duration_ns / 1e9
+
+        return {
+            "response": response_json["response"],
+            "evaluation_seconds": evaluation_seconds,
+            "ollama_metrics": {
+                "total_duration_ns": response_json.get("total_duration"),
+                "load_duration_ns": response_json.get("load_duration"),
+                "prompt_eval_count": response_json.get("prompt_eval_count"),
+                "prompt_eval_duration_ns": response_json.get("prompt_eval_duration"),
+                "eval_count": response_json.get("eval_count"),
+                "eval_duration_ns": ollama_eval_duration_ns
+            }
+        }
         
-    def generate(self, prompt: Union[str, List[str]], **kwargs) -> Union[str, List[str]]:
+    def generate(self, prompt: Union[str, List[str]], **kwargs) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         """Generate response(s) for the given prompt(s)"""
         if isinstance(prompt, list):
             return [self._call_ollama(p) for p in prompt]
         return self._call_ollama(prompt)
         
-    def process_image(self, image_path: str, prompt: str, **kwargs) -> str:
+    def process_image(self, image_path: str, prompt: str, **kwargs) -> Dict[str, Any]:
         """Process image and text prompt for VQA tasks"""
         # Convert image to base64
         with open(image_path, "rb") as f:
