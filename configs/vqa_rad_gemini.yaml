@@ -1,0 +1,29 @@
+models:
+  gemma3:27b:
+    type: "api"
+    model_name: "gemma-3-27b-it"
+    api_key: "${GEMINI_API_KEY}"
+    max_tokens: 128000
+    top_k: 64
+    top_p: 0.95
+
+tasks:
+  vqa_rad:
+    type: "vqa_rad"
+    data_path: "data/vqa_rad"
+    sample_size: 10
+    random_seed: 42
+    split: ["test"]
+
+logging:
+  wandb:
+    project: "multimodal-benchmarks"
+    entity: "vqa_rad"
+    enabled: True
+    run_name: "test-run-log"
+  save_predictions: True
+  output_dir: "results"
+
+device: "cuda"
+batch_size: 8
+num_workers: 4

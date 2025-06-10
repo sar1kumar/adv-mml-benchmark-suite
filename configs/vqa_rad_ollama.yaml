@@ -10,14 +10,18 @@ models:
 tasks:
   vqa_rad:
     type: "vqa_rad"
-    data_path: "data/VQA_RAD"
+    data_path: "data/vqa_rad"
+    sample_size: 10
+    random_seed: 42
     split: ["test"]
 
 logging:
   wandb:
     project: "multimodal-benchmarks"
     entity: "vqa_rad"
-  save_predictions: true
+    enabled: True
+    run_name: "test-run"
+  save_predictions: True
   output_dir: "results"
 
 device: "cuda"
