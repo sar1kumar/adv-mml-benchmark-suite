@@ -1,5 +1,6 @@
 import os
 import json
+import random
 from typing import Dict, List, Any, Tuple
 from datetime import datetime
 from benchmark_suite.tasks.base_task import BaseTask
@@ -18,7 +19,7 @@ class VQARADTask(BaseTask):
         self.answer_types = ["CLOSED", "OPEN"]
         
     def load_data(self) -> None:
-        """Load VQA-RAD dataset"""
+        """Load VQA-RAD dataset with optional sampling"""
         json_file = os.path.join(self.data_path, "VQA_RAD Dataset Public.json")
         if not os.path.exists(json_file):
             raise FileNotFoundError(f"VQA-RAD data not found at {json_file}")
@@ -28,10 +29,29 @@ class VQARADTask(BaseTask):
             
         # Split data based on phrase_type
         for item in all_data:
-            split_name = item["phrase_type"].replace("_freeform", "") #TODO - add other splits for different phrase_types and modalities
+            split_name = item["phrase_type"].replace("_freeform", "")
             if split_name not in self.data:
                 self.data[split_name] = []
             self.data[split_name].append(item)
+        
+        # Add Sample dataset
+        if self.sample_size is not None:
+            random.seed(self.random_seed)
+            sampled_data = {}
+            
+            for split_name, split_data in self.data.items():
+                if split_name not in self.split:
+                    continue
+                    
+                if self.sample_size > len(split_data):
+                    print(f"Warning: Requested sample size {self.sample_size} is larger than dataset size {len(split_data)} for split {split_name}. Using full split.")
+                    sampled_data[split_name] = split_data
+                else:
+                    sampled_indices = random.sample(range(len(split_data)), self.sample_size)
+                    sampled_data[split_name] = [split_data[i] for i in sampled_indices]
+                    print(f"Sampled {self.sample_size} examples from {split_name} split")
+            
+            self.data = sampled_data
                 
     def format_prompt(self, example: Dict[str, Any]) -> str:    #TODO - add other prompt formats for different phrase_types and modalities
         """Format VQA-RAD question with context about the image"""
