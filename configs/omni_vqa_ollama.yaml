@@ -1,0 +1,30 @@
+models:
+  gemma:
+    type: "ollama"
+    model_name: "gemma3:27b"
+    max_tokens: 128000
+    temperature: 1
+    top_k: 64
+    top_p: 0.95
+
+tasks:
+  omnimed_vqa:
+    type: "omnimed_vqa"
+    data_path: "data/omnimed_vqa/OmniMedVQA"  # Path to the root OmniMedVQA directory
+    access_type: "Open-access"  # or "Restricted-access"
+    sample_size: 1  # samples per dataset
+    random_seed: 42
+    metrics: ["accuracy", "bleu", "rouge", "meteor", "cider"]
+
+logging:
+  wandb:
+    project: "multimodal-benchmarks"
+    entity: "${WANDB_ENTITY}"
+    enabled: True
+    run_name: "omnimed-vqa-evaluation"
+  save_predictions: True
+  output_dir: "results"
+
+device: "cuda"
+batch_size: 8
+num_workers: 4

@@ -130,10 +130,51 @@ def prepare_sme_data(output_base_dir):
     elif temp_download_dir != sme_data_dir: # only remove if it's a separate temp dir
         pass
 
+def prepare_omnimed_vqa_data(output_base_dir):
+    """Prepares data for the OmniMedVQA task."""
+    print(f"Preparing OmniMedVQA data in {output_base_dir}...")
+    
+    # HuggingFace dataset URL
+    omnimed_vqa_url = "https://huggingface.co/datasets/foreverbeliever/OmniMedVQA/resolve/main/OmniMedVQA.zip?download=true"
+    
+    # Create a temporary download directory
+    temp_download_dir = os.path.join(output_base_dir, "temp_download_omnimed_vqa")
+    os.makedirs(temp_download_dir, exist_ok=True)
+
+    # Download the dataset
+    zip_filename = download_file(omnimed_vqa_url, temp_download_dir)
+    
+    if not zip_filename:
+        print("Failed to download OmniMedVQA data. Aborting.")
+        shutil.rmtree(temp_download_dir)
+        return
+
+    # Create the final OmniMedVQA data directory
+    omnimed_vqa_data_dir = output_base_dir
+    os.makedirs(omnimed_vqa_data_dir, exist_ok=True)
+
+    # Extract directly into the final directory
+    if not extract_zip(zip_filename, omnimed_vqa_data_dir):
+        print("Failed to extract OmniMedVQA data. Aborting.")
+        shutil.rmtree(temp_download_dir)
+        return
+        
+    print("OmniMedVQA data preparation complete.")
+    print(f"Data should be in: {omnimed_vqa_data_dir}")
+    print("Expected contents: 'Images' folder and 'QA_information' folder with Open-access and Restricted-access subdirectories.")
+
+    # Clean up the downloaded zip file
+    os.remove(zip_filename)
+    # Remove the temporary download directory if it's empty
+    if not os.listdir(temp_download_dir):
+        os.rmdir(temp_download_dir)
+    elif temp_download_dir != omnimed_vqa_data_dir:  # only remove if it's a separate temp dir
+        pass
+
 
 def main():
     parser = argparse.ArgumentParser(description="Download and prepare benchmark datasets.")
-    parser.add_argument("--task", type=str, required=True, choices=["vqa_rad", "sme", "all"], # Add more tasks as needed
+    parser.add_argument("--task", type=str, required=True, choices=["vqa_rad", "sme", "omnimed_vqa", "all"], # Add more tasks as needed
                         help="The specific task to prepare data for, or 'all'.")
     parser.add_argument("--output", type=str, required=True,
                         help="The base directory where the task-specific data folder will be created (e.g., data/). The script will create a subfolder named after the task (e.g. data/vqa_rad).")
@@ -142,7 +183,6 @@ def main():
 
     # The user provides a base path like 'data/', and the script creates 'data/vqa_rad/'
     # Or if user provides 'data/vqa_rad', that's also fine.
-    # Let's ensure the output path refers to the specific task folder.
     
     task_output_dir = args.output # The user will specify the full path like 'data/vqa_rad'
 
@@ -154,6 +194,8 @@ def main():
         prepare_vqa_rad_data(task_output_dir)
     elif args.task == "sme":
         prepare_sme_data(task_output_dir)
+    elif args.task == "omnimed_vqa":
+        prepare_omnimed_vqa_data(task_output_dir)
     elif args.task == "all":
         print("Preparing all datasets...")
         # Call each preparation function

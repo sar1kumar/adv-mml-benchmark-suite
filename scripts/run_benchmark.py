@@ -13,6 +13,7 @@ from benchmark_suite.models.gemini_model import GeminiModel
 from benchmark_suite.tasks.sme_task import SMETask
 from benchmark_suite.tasks.vqa_rad import VQARADTask
 from benchmark_suite.tasks.embodied_vqa import EmbodiedVQATask
+from benchmark_suite.tasks.omni_vqa import OmniMedVQATask
 
 def load_config(config_path: str) -> Dict[str, Any]:
     """Load and validate benchmark configuration"""
@@ -41,6 +42,8 @@ def get_task(task_name: str, task_config: Dict[str, Any]):
     """Initialize task based on config"""
     if task_name == "sme":
         return SMETask(task_config)
+    elif task_name == "omnimed_vqa":
+        return OmniMedVQATask(task_config)
     elif task_name == "vqa_rad":
         return VQARADTask(task_config)
     elif task_name == "embodied_vqa":
