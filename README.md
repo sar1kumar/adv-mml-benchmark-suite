@@ -8,7 +8,7 @@ A comprehensive benchmark suite for evaluating multimodal language models across
   - Gemma (via Ollama)
   - Gemini (via Google API)
 - Multiple benchmark tasks:
-  - MMLU (massive multitask language understanding)
+  - SME (Standard Multimodal Evaluation)
   - VQA-RAD (visual question answering for radiology)
   - EmbodiedVQA (embodied visual question answering)
 - Comprehensive evaluation metrics
@@ -19,6 +19,7 @@ A comprehensive benchmark suite for evaluating multimodal language models across
 - Configurable via YAML files
 - Parallel execution support
 - Extensive logging (console, file, and W&B)
+- Dataset Sampling
 
 ## Installation
 
@@ -54,10 +55,14 @@ python scripts/prepare_data.py --task sme --output data/sme
 ```bash
 python scripts/prepare_data.py --task vqa_rad --output data/vqa_rad
 ```
-
-3. EmbodiedVQA:
+1. OmniMed-VQA:
 ```bash
-python scripts/prepare_data.py --task embodied_vqa --output data/embodied_vqa
+python scripts/prepare_data.py --task omnimed_vqa --output data/omnimed_vqa
+```
+
+3. ERQA:
+```bash
+python scripts/prepare_data.py --task erqa --output data/erqa
 ```
 
 ## Running Benchmarks
@@ -68,7 +73,7 @@ python scripts/prepare_data.py --task embodied_vqa --output data/embodied_vqa
 
 2. Run the benchmark:
 ```bash
-python scripts/run_benchmark.py configs/multi_scenario.yaml --output results/benchmark_results.json
+python -m scripts.run_benchmark configs/omni_vqa_ollama.yaml
 ```
 
 ### Adversarial Evaluation
