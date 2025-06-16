@@ -78,6 +78,13 @@ class GemmaModel(BaseModel):
         
         # Pass image in the images array
         return self._call_ollama(formatted_prompt, images=[image_b64])
+    def process_images(self, images: List[str], prompt: str, **kwargs) -> Dict[str, Any]:
+        """Process multiple images and text prompt for VQA tasks"""
+        # Convert images to base64
+        image_b64s = [base64.b64encode(image).decode() for image in images]
+        
+        # Format prompt for image understanding
+        formatted_prompt = f"Question: {prompt}\nAnswer:"
         
     def process_video(self, video_path: str, prompt: str, **kwargs) -> str:
         """Process video and text prompt for video-based tasks"""
