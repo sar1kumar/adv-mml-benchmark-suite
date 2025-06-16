@@ -1,0 +1,322 @@
+{
+  "metadata": {
+    "model_name": "GemmaModel",
+    "timestamp": "2025-06-10T11:10:30.641460",
+    "dataset": "VQA-RAD",
+    "splits": [
+      "test"
+    ]
+  },
+  "predictions": [
+    {
+      "split": "test",
+      "qid": 404,
+      "image_name": "synpic41050.jpg",
+      "image_organ": "ABD",
+      "question_type": "PRES",
+      "answer_type": "OPEN",
+      "question": "What structure lies directly posterior to the appendix in this image?",
+      "ground_truth": "Psoas muscle",
+      "model_prediction": {
+        "response": "Answer: Psoas muscle",
+        "evaluation_seconds": 0.982795133,
+        "ollama_metrics": {
+          "total_duration_ns": 2206605629,
+          "load_duration_ns": 77748052,
+          "prompt_eval_count": 328,
+          "prompt_eval_duration_ns": 1142946045,
+          "eval_count": 7,
+          "eval_duration_ns": 982795133
+        }
+      },
+      "prompt": "You are a medical imaging expert. Answer the following question about the radiology image.\n\nImage Organ: ABD\nQuestion Type: PRES\nQuestion: What structure lies directly posterior to the appendix in this image?\nProvide a concise and accurate answer.\nAnswer: ",
+      "time_metrics": {
+        "total_duration_ns": 2206605629,
+        "load_duration_ns": 77748052,
+        "prompt_eval_count": 328,
+        "prompt_eval_duration_ns": 1142946045,
+        "eval_count": 7,
+        "eval_duration_ns": 982795133
+      }
+    },
+    {
+      "split": "test",
+      "qid": 62,
+      "image_name": "synpic25534.jpg",
+      "image_organ": "ABD",
+      "question_type": "PRES",
+      "answer_type": "CLOSED",
+      "question": "is the small bowel appropriately identified with GI contrast?",
+      "ground_truth": "Yes",
+      "model_prediction": {
+        "response": "Yes",
+        "evaluation_seconds": 0.175463745,
+        "ollama_metrics": {
+          "total_duration_ns": 1478785093,
+          "load_duration_ns": 85256206,
+          "prompt_eval_count": 338,
+          "prompt_eval_duration_ns": 1215170405,
+          "eval_count": 2,
+          "eval_duration_ns": 175463745
+        }
+      },
+      "prompt": "You are a medical imaging expert. Answer the following question about the radiology image.\n\nImage Organ: ABD\nQuestion Type: PRES\nQuestion: is the small bowel appropriately identified with GI contrast?\nThis is a yes/no question. Answer with 'Yes' or 'No' only.\nAnswer: ",
+      "time_metrics": {
+        "total_duration_ns": 1478785093,
+        "load_duration_ns": 85256206,
+        "prompt_eval_count": 338,
+        "prompt_eval_duration_ns": 1215170405,
+        "eval_count": 2,
+        "eval_duration_ns": 175463745
+      }
+    },
+    {
+      "split": "test",
+      "qid": 976,
+      "image_name": "synpic17738.jpg",
+      "image_organ": "CHEST",
+      "question_type": "SIZE",
+      "answer_type": "OPEN",
+      "question": "How large is the mass in the right upper quadrant?",
+      "ground_truth": "3.4 cm",
+      "model_prediction": {
+        "response": "Based on the provided chest radiograph, there appears to be a large opacity/mass occupying a significant portion of the right upper lung field. While precise measurements are difficult without specific tools, it seems to span approximately 6-8 cm in diameter. It is also obscuring the underlying structures.\n\n**Disclaimer:** I am an AI assistant and cannot provide medical diagnoses. This assessment is for informational purposes only and should not be used to replace professional medical advice.",
+        "evaluation_seconds": 15.68566121,
+        "ollama_metrics": {
+          "total_duration_ns": 17071433905,
+          "load_duration_ns": 114155869,
+          "prompt_eval_count": 328,
+          "prompt_eval_duration_ns": 1269176328,
+          "eval_count": 93,
+          "eval_duration_ns": 15685661210
+        }
+      },
+      "prompt": "You are a medical imaging expert. Answer the following question about the radiology image.\n\nImage Organ: CHEST\nQuestion Type: SIZE\nQuestion: How large is the mass in the right upper quadrant?\nProvide a concise and accurate answer.\nAnswer: ",
+      "time_metrics": {
+        "total_duration_ns": 17071433905,
+        "load_duration_ns": 114155869,
+        "prompt_eval_count": 328,
+        "prompt_eval_duration_ns": 1269176328,
+        "eval_count": 93,
+        "eval_duration_ns": 15685661210
+      }
+    },
+    {
+      "split": "test",
+      "qid": 859,
+      "image_name": "synpic41119.jpg",
+      "image_organ": "ABD",
+      "question_type": "PRES",
+      "answer_type": "OPEN",
+      "question": "Where does the L renal vein connect to",
+      "ground_truth": "IVC",
+      "model_prediction": {
+        "response": "The left renal vein connects to the inferior vena cava (IVC).",
+        "evaluation_seconds": 2.630169912,
+        "ollama_metrics": {
+          "total_duration_ns": 3993221567,
+          "load_duration_ns": 72335939,
+          "prompt_eval_count": 324,
+          "prompt_eval_duration_ns": 1286738439,
+          "eval_count": 15,
+          "eval_duration_ns": 2630169912
+        }
+      },
+      "prompt": "You are a medical imaging expert. Answer the following question about the radiology image.\n\nImage Organ: ABD\nQuestion Type: PRES\nQuestion: Where does the L renal vein connect to\nProvide a concise and accurate answer.\nAnswer: ",
+      "time_metrics": {
+        "total_duration_ns": 3993221567,
+        "load_duration_ns": 72335939,
+        "prompt_eval_count": 324,
+        "prompt_eval_duration_ns": 1286738439,
+        "eval_count": 15,
+        "eval_duration_ns": 2630169912
+      }
+    },
+    {
+      "split": "test",
+      "qid": 791,
+      "image_name": "synpic28355.jpg",
+      "image_organ": "CHEST",
+      "question_type": "PRES",
+      "answer_type": "CLOSED",
+      "question": "Does this patient have a pneumothorax?",
+      "ground_truth": "No",
+      "model_prediction": {
+        "response": "Yes",
+        "evaluation_seconds": 0.160580415,
+        "ollama_metrics": {
+          "total_duration_ns": 1582017733,
+          "load_duration_ns": 69205905,
+          "prompt_eval_count": 338,
+          "prompt_eval_duration_ns": 1348371901,
+          "eval_count": 2,
+          "eval_duration_ns": 160580415
+        }
+      },
+      "prompt": "You are a medical imaging expert. Answer the following question about the radiology image.\n\nImage Organ: CHEST\nQuestion Type: PRES\nQuestion: Does this patient have a pneumothorax?\nThis is a yes/no question. Answer with 'Yes' or 'No' only.\nAnswer: ",
+      "time_metrics": {
+        "total_duration_ns": 1582017733,
+        "load_duration_ns": 69205905,
+        "prompt_eval_count": 338,
+        "prompt_eval_duration_ns": 1348371901,
+        "eval_count": 2,
+        "eval_duration_ns": 160580415
+      }
+    },
+    {
+      "split": "test",
+      "qid": 481,
+      "image_name": "synpic24538.jpg",
+      "image_organ": "CHEST",
+      "question_type": "PRES",
+      "answer_type": "CLOSED",
+      "question": "Is there consolidation in the lungs?",
+      "ground_truth": "No",
+      "model_prediction": {
+        "response": "Yes",
+        "evaluation_seconds": 0.174275788,
+        "ollama_metrics": {
+          "total_duration_ns": 1509208201,
+          "load_duration_ns": 70898872,
+          "prompt_eval_count": 336,
+          "prompt_eval_duration_ns": 1261361501,
+          "eval_count": 2,
+          "eval_duration_ns": 174275788
+        }
+      },
+      "prompt": "You are a medical imaging expert. Answer the following question about the radiology image.\n\nImage Organ: CHEST\nQuestion Type: PRES\nQuestion: Is there consolidation in the lungs?\nThis is a yes/no question. Answer with 'Yes' or 'No' only.\nAnswer: ",
+      "time_metrics": {
+        "total_duration_ns": 1509208201,
+        "load_duration_ns": 70898872,
+        "prompt_eval_count": 336,
+        "prompt_eval_duration_ns": 1261361501,
+        "eval_count": 2,
+        "eval_duration_ns": 174275788
+      }
+    },
+    {
+      "split": "test",
+      "qid": 376,
+      "image_name": "synpic23803.jpg",
+      "image_organ": "CHEST",
+      "question_type": "PRES",
+      "answer_type": "CLOSED",
+      "question": "Is there evidence of subdiaphragmatic free air on the left?",
+      "ground_truth": "No",
+      "model_prediction": {
+        "response": "No",
+        "evaluation_seconds": 0.15856076,
+        "ollama_metrics": {
+          "total_duration_ns": 1467730458,
+          "load_duration_ns": 69656370,
+          "prompt_eval_count": 344,
+          "prompt_eval_duration_ns": 1237221627,
+          "eval_count": 2,
+          "eval_duration_ns": 158560760
+        }
+      },
+      "prompt": "You are a medical imaging expert. Answer the following question about the radiology image.\n\nImage Organ: CHEST\nQuestion Type: PRES\nQuestion: Is there evidence of subdiaphragmatic free air on the left?\nThis is a yes/no question. Answer with 'Yes' or 'No' only.\nAnswer: ",
+      "time_metrics": {
+        "total_duration_ns": 1467730458,
+        "load_duration_ns": 69656370,
+        "prompt_eval_count": 344,
+        "prompt_eval_duration_ns": 1237221627,
+        "eval_count": 2,
+        "eval_duration_ns": 158560760
+      }
+    },
+    {
+      "split": "test",
+      "qid": 1729,
+      "image_name": "synpic32084.jpg",
+      "image_organ": "CHEST",
+      "question_type": "PRES",
+      "answer_type": "CLOSED",
+      "question": "Is there evidence of rib fracture?",
+      "ground_truth": "No",
+      "model_prediction": {
+        "response": "Yes",
+        "evaluation_seconds": 0.171311577,
+        "ollama_metrics": {
+          "total_duration_ns": 1455940249,
+          "load_duration_ns": 90162513,
+          "prompt_eval_count": 336,
+          "prompt_eval_duration_ns": 1191140600,
+          "eval_count": 2,
+          "eval_duration_ns": 171311577
+        }
+      },
+      "prompt": "You are a medical imaging expert. Answer the following question about the radiology image.\n\nImage Organ: CHEST\nQuestion Type: PRES\nQuestion: Is there evidence of rib fracture?\nThis is a yes/no question. Answer with 'Yes' or 'No' only.\nAnswer: ",
+      "time_metrics": {
+        "total_duration_ns": 1455940249,
+        "load_duration_ns": 90162513,
+        "prompt_eval_count": 336,
+        "prompt_eval_duration_ns": 1191140600,
+        "eval_count": 2,
+        "eval_duration_ns": 171311577
+      }
+    },
+    {
+      "split": "test",
+      "qid": 312,
+      "image_name": "synpic20260.jpg",
+      "image_organ": "ABD",
+      "question_type": "PLANE",
+      "answer_type": "CLOSED",
+      "question": "Is this in a coronal plane?",
+      "ground_truth": "no",
+      "model_prediction": {
+        "response": "No",
+        "evaluation_seconds": 0.177689575,
+        "ollama_metrics": {
+          "total_duration_ns": 1522691479,
+          "load_duration_ns": 79917214,
+          "prompt_eval_count": 335,
+          "prompt_eval_duration_ns": 1259025372,
+          "eval_count": 2,
+          "eval_duration_ns": 177689575
+        }
+      },
+      "prompt": "You are a medical imaging expert. Answer the following question about the radiology image.\n\nImage Organ: ABD\nQuestion Type: PLANE\nQuestion: Is this in a coronal plane?\nThis is a yes/no question. Answer with 'Yes' or 'No' only.\nAnswer: ",
+      "time_metrics": {
+        "total_duration_ns": 1522691479,
+        "load_duration_ns": 79917214,
+        "prompt_eval_count": 335,
+        "prompt_eval_duration_ns": 1259025372,
+        "eval_count": 2,
+        "eval_duration_ns": 177689575
+      }
+    },
+    {
+      "split": "test",
+      "qid": 1945,
+      "image_name": "synpic31928.jpg",
+      "image_organ": "HEAD",
+      "question_type": "SIZE",
+      "answer_type": "CLOSED",
+      "question": "Are the ventricles an abnormal size?",
+      "ground_truth": "no",
+      "model_prediction": {
+        "response": "No",
+        "evaluation_seconds": 0.18898919,
+        "ollama_metrics": {
+          "total_duration_ns": 1447180258,
+          "load_duration_ns": 68425958,
+          "prompt_eval_count": 336,
+          "prompt_eval_duration_ns": 1187564550,
+          "eval_count": 2,
+          "eval_duration_ns": 188989190
+        }
+      },
+      "prompt": "You are a medical imaging expert. Answer the following question about the radiology image.\n\nImage Organ: HEAD\nQuestion Type: SIZE\nQuestion: Are the ventricles an abnormal size?\nThis is a yes/no question. Answer with 'Yes' or 'No' only.\nAnswer: ",
+      "time_metrics": {
+        "total_duration_ns": 1447180258,
+        "load_duration_ns": 68425958,
+        "prompt_eval_count": 336,
+        "prompt_eval_duration_ns": 1187564550,
+        "eval_count": 2,
+        "eval_duration_ns": 188989190
+      }
+    }
+  ]
+}

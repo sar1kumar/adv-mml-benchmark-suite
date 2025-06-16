@@ -1,0 +1,418 @@
+{
+  "metadata": {
+    "model_name": "GemmaModel",
+    "timestamp": "2025-06-07T20:24:45.236006",
+    "dataset": "SME",
+    "splits": [
+      "test"
+    ],
+    "prompt_config": {
+      "num_prompts": 8,
+      "method": "random"
+    },
+    "sample_size": 10,
+    "random_seed": 42
+  },
+  "predictions": [
+    {
+      "split": "test",
+      "id": "01281333",
+      "image_id": "2377817",
+      "image_file": "2377817.jpg",
+      "question": "Is the traffic light to the left of the train that looks green and gray?",
+      "ground_truth": "yes",
+      "explanation": "The traffic light [BOX] is to the left of the train [BOX].",
+      "boxes": {
+        "traffic light": [
+          [
+            [
+              248,
+              256,
+              261,
+              298
+            ]
+          ]
+        ],
+        "train": [
+          [
+            [
+              355,
+              219,
+              481,
+              309
+            ]
+          ]
+        ]
+      },
+      "model_prediction": "no\nExplanation:\nThe traffic light {BOX0} is not to the left of the green and gray train {BOX1}.\nBoxes:\n{BOX0}: [19, 331, 78, 386]\n{BOX1}: [414, 265, 476, 375]",
+      "prompt": "Answer the visual question and generate an explanation with grounded boxes of the objectives in the image. The boxes are in the form of [x1, y1, x2, y2].\n\nQuestion: Which color do you think the floor has?\nAnswer:\ngray\nExplanation:\nThe floor {BOX0} is gray.\nBoxes:\n{BOX0}: [56, 275, 432, 376]\n\nQuestion: On which side of the photo is the old vehicle?\nAnswer:\nleft\nExplanation:\nThe old vehicle {BOX0} is located here {BOX1}.\nBoxes:\n{BOX0}: [0, 102, 175, 303]\n{BOX1}: [0, 102, 175, 303]\n\nQuestion: Is the man that is to the right of the woman wearing a suit?\nAnswer:\nno\nExplanation:\nThere is no suit that the man {BOX1} to the right of the woman {BOX0} is wearing.\nBoxes:\n{BOX0}: [31, 36, 210, 360]\n{BOX1}: [0, 43, 49, 110]\n\nQuestion: Are there either glasses or ties in the image?\nAnswer:\nno\nExplanation:\nThere is neither glasses nor a tie.\n\nQuestion: Are the glass and the picture frame made of the same material?\nAnswer:\nno\nExplanation:\nThe glass {BOX0} is made of glass, the picture frame {BOX1} is made of wood.\nBoxes:\n{BOX0}: [47, 0, 373, 484]\n{BOX1}: [119, 275, 167, 320]\n\nQuestion: Does the man below the frame sit on a couch?\nAnswer:\nyes\nExplanation:\nThe couch {BOX2} that the man {BOX1} below the frame {BOX0} is sitting on.\nBoxes:\n{BOX0}: [49, 257, 155, 357]\n{BOX1}: [196, 201, 271, 307]\n{BOX2}: [69, 170, 93, 192]\n\nQuestion: Is the cup on the left side or on the right?\nAnswer:\nright\nExplanation:\nThe cup {BOX0} is on the left.\nBoxes:\n{BOX0}: [14, 181, 123, 349]\n\nQuestion: Is the license plate both black and small?\nAnswer:\nyes\nExplanation:\nThere is a black and small license plate {BOX0}.\nBoxes:\n{BOX0}: [118, 382, 294, 474]\n\nQuestion: Is the traffic light to the left of the train that looks green and gray?\nAnswer:\n",
+      "time_metrics": {
+        "total_duration_ns": 15354395881,
+        "load_duration_ns": 81002781,
+        "prompt_eval_count": 949,
+        "prompt_eval_duration_ns": 1925211847,
+        "eval_count": 79,
+        "eval_duration_ns": 13341533258
+      }
+    },
+    {
+      "split": "test",
+      "id": "01589154",
+      "image_id": "2378861",
+      "image_file": "2378861.jpg",
+      "question": "Who leans against the hydrant?",
+      "ground_truth": "woman",
+      "explanation": "The person [BOX] leaning against the fire hydrant [BOX] is a woman.",
+      "boxes": {
+        "person": [
+          [
+            [
+              54,
+              99,
+              376,
+              306
+            ]
+          ]
+        ],
+        "fire hydrant": [
+          [
+            [
+              304,
+              106,
+              410,
+              291
+            ]
+          ]
+        ]
+      },
+      "model_prediction": "The woman {BOX0} leans against the hydrant {BOX1}.\nBoxes:\n{BOX0}: [31, 36, 210, 360]\n{BOX1}: [144, 197, 169, 247]",
+      "prompt": "Answer the visual question and generate an explanation with grounded boxes of the objectives in the image. The boxes are in the form of [x1, y1, x2, y2].\n\nQuestion: Which color do you think the floor has?\nAnswer:\ngray\nExplanation:\nThe floor {BOX0} is gray.\nBoxes:\n{BOX0}: [56, 275, 432, 376]\n\nQuestion: On which side of the photo is the old vehicle?\nAnswer:\nleft\nExplanation:\nThe old vehicle {BOX0} is located here {BOX1}.\nBoxes:\n{BOX0}: [0, 102, 175, 303]\n{BOX1}: [0, 102, 175, 303]\n\nQuestion: Is the man that is to the right of the woman wearing a suit?\nAnswer:\nno\nExplanation:\nThere is no suit that the man {BOX1} to the right of the woman {BOX0} is wearing.\nBoxes:\n{BOX0}: [31, 36, 210, 360]\n{BOX1}: [0, 43, 49, 110]\n\nQuestion: Are there either glasses or ties in the image?\nAnswer:\nno\nExplanation:\nThere is neither glasses nor a tie.\n\nQuestion: Are the glass and the picture frame made of the same material?\nAnswer:\nno\nExplanation:\nThe glass {BOX0} is made of glass, the picture frame {BOX1} is made of wood.\nBoxes:\n{BOX0}: [47, 0, 373, 484]\n{BOX1}: [119, 275, 167, 320]\n\nQuestion: Does the man below the frame sit on a couch?\nAnswer:\nyes\nExplanation:\nThe couch {BOX2} that the man {BOX1} below the frame {BOX0} is sitting on.\nBoxes:\n{BOX0}: [49, 257, 155, 357]\n{BOX1}: [196, 201, 271, 307]\n{BOX2}: [69, 170, 93, 192]\n\nQuestion: Is the cup on the left side or on the right?\nAnswer:\nright\nExplanation:\nThe cup {BOX0} is on the left.\nBoxes:\n{BOX0}: [14, 181, 123, 349]\n\nQuestion: Is the license plate both black and small?\nAnswer:\nyes\nExplanation:\nThere is a black and small license plate {BOX0}.\nBoxes:\n{BOX0}: [118, 382, 294, 474]\n\nQuestion: Who leans against the hydrant?\nAnswer:\n",
+      "time_metrics": {
+        "total_duration_ns": 12909822516,
+        "load_duration_ns": 66916408,
+        "prompt_eval_count": 939,
+        "prompt_eval_duration_ns": 1897056483,
+        "eval_count": 66,
+        "eval_duration_ns": 10939243626
+      }
+    },
+    {
+      "split": "test",
+      "id": "10529174",
+      "image_id": "2401883",
+      "image_file": "2401883.jpg",
+      "question": "Are there red trucks or trains?",
+      "ground_truth": "yes",
+      "explanation": "There is the red train [BOX].",
+      "boxes": {
+        "train": [
+          [
+            [
+              0,
+              105,
+              388,
+              438
+            ]
+          ]
+        ]
+      },
+      "model_prediction": "red trains\nExplanation:\nThe red train {BOX0} is on the left.\nBoxes:\n{BOX0}: [12, 128, 346, 327]",
+      "prompt": "Answer the visual question and generate an explanation with grounded boxes of the objectives in the image. The boxes are in the form of [x1, y1, x2, y2].\n\nQuestion: Which color do you think the floor has?\nAnswer:\ngray\nExplanation:\nThe floor {BOX0} is gray.\nBoxes:\n{BOX0}: [56, 275, 432, 376]\n\nQuestion: On which side of the photo is the old vehicle?\nAnswer:\nleft\nExplanation:\nThe old vehicle {BOX0} is located here {BOX1}.\nBoxes:\n{BOX0}: [0, 102, 175, 303]\n{BOX1}: [0, 102, 175, 303]\n\nQuestion: Is the man that is to the right of the woman wearing a suit?\nAnswer:\nno\nExplanation:\nThere is no suit that the man {BOX1} to the right of the woman {BOX0} is wearing.\nBoxes:\n{BOX0}: [31, 36, 210, 360]\n{BOX1}: [0, 43, 49, 110]\n\nQuestion: Are there either glasses or ties in the image?\nAnswer:\nno\nExplanation:\nThere is neither glasses nor a tie.\n\nQuestion: Are the glass and the picture frame made of the same material?\nAnswer:\nno\nExplanation:\nThe glass {BOX0} is made of glass, the picture frame {BOX1} is made of wood.\nBoxes:\n{BOX0}: [47, 0, 373, 484]\n{BOX1}: [119, 275, 167, 320]\n\nQuestion: Does the man below the frame sit on a couch?\nAnswer:\nyes\nExplanation:\nThe couch {BOX2} that the man {BOX1} below the frame {BOX0} is sitting on.\nBoxes:\n{BOX0}: [49, 257, 155, 357]\n{BOX1}: [196, 201, 271, 307]\n{BOX2}: [69, 170, 93, 192]\n\nQuestion: Is the cup on the left side or on the right?\nAnswer:\nright\nExplanation:\nThe cup {BOX0} is on the left.\nBoxes:\n{BOX0}: [14, 181, 123, 349]\n\nQuestion: Is the license plate both black and small?\nAnswer:\nyes\nExplanation:\nThere is a black and small license plate {BOX0}.\nBoxes:\n{BOX0}: [118, 382, 294, 474]\n\nQuestion: Are there red trucks or trains?\nAnswer:\n",
+      "time_metrics": {
+        "total_duration_ns": 9832829954,
+        "load_duration_ns": 63426362,
+        "prompt_eval_count": 940,
+        "prompt_eval_duration_ns": 2015082332,
+        "eval_count": 46,
+        "eval_duration_ns": 7745049906
+      }
+    },
+    {
+      "split": "test",
+      "id": "10312655",
+      "image_id": "2391245",
+      "image_file": "2391245.jpg",
+      "question": "Which side of the picture is the happy lady on?",
+      "ground_truth": "right",
+      "explanation": "Happy the lady [BOX] is located here [BOX].",
+      "boxes": {
+        "lady": [
+          [
+            [
+              294,
+              72,
+              480,
+              319
+            ]
+          ]
+        ],
+        "LOC": [
+          [
+            [
+              294,
+              72,
+              480,
+              319
+            ]
+          ]
+        ]
+      },
+      "model_prediction": "right\nExplanation:\nThe happy lady {BOX0} is located on the right side.\nBoxes:\n{BOX0}: [279, 45, 387, 374]",
+      "prompt": "Answer the visual question and generate an explanation with grounded boxes of the objectives in the image. The boxes are in the form of [x1, y1, x2, y2].\n\nQuestion: Which color do you think the floor has?\nAnswer:\ngray\nExplanation:\nThe floor {BOX0} is gray.\nBoxes:\n{BOX0}: [56, 275, 432, 376]\n\nQuestion: On which side of the photo is the old vehicle?\nAnswer:\nleft\nExplanation:\nThe old vehicle {BOX0} is located here {BOX1}.\nBoxes:\n{BOX0}: [0, 102, 175, 303]\n{BOX1}: [0, 102, 175, 303]\n\nQuestion: Is the man that is to the right of the woman wearing a suit?\nAnswer:\nno\nExplanation:\nThere is no suit that the man {BOX1} to the right of the woman {BOX0} is wearing.\nBoxes:\n{BOX0}: [31, 36, 210, 360]\n{BOX1}: [0, 43, 49, 110]\n\nQuestion: Are there either glasses or ties in the image?\nAnswer:\nno\nExplanation:\nThere is neither glasses nor a tie.\n\nQuestion: Are the glass and the picture frame made of the same material?\nAnswer:\nno\nExplanation:\nThe glass {BOX0} is made of glass, the picture frame {BOX1} is made of wood.\nBoxes:\n{BOX0}: [47, 0, 373, 484]\n{BOX1}: [119, 275, 167, 320]\n\nQuestion: Does the man below the frame sit on a couch?\nAnswer:\nyes\nExplanation:\nThe couch {BOX2} that the man {BOX1} below the frame {BOX0} is sitting on.\nBoxes:\n{BOX0}: [49, 257, 155, 357]\n{BOX1}: [196, 201, 271, 307]\n{BOX2}: [69, 170, 93, 192]\n\nQuestion: Is the cup on the left side or on the right?\nAnswer:\nright\nExplanation:\nThe cup {BOX0} is on the left.\nBoxes:\n{BOX0}: [14, 181, 123, 349]\n\nQuestion: Is the license plate both black and small?\nAnswer:\nyes\nExplanation:\nThere is a black and small license plate {BOX0}.\nBoxes:\n{BOX0}: [118, 382, 294, 474]\n\nQuestion: Which side of the picture is the happy lady on?\nAnswer:\n",
+      "time_metrics": {
+        "total_duration_ns": 9881463174,
+        "load_duration_ns": 80629758,
+        "prompt_eval_count": 944,
+        "prompt_eval_duration_ns": 1937382167,
+        "eval_count": 47,
+        "eval_duration_ns": 7859663837
+      }
+    },
+    {
+      "split": "test",
+      "id": "16811291",
+      "image_id": "2350499",
+      "image_file": "2350499.jpg",
+      "question": "On which side of the photo is the airplane?",
+      "ground_truth": "left",
+      "explanation": "The airplane [BOX] is located here [BOX].",
+      "boxes": {
+        "airplane": [
+          [
+            [
+              0,
+              48,
+              230,
+              164
+            ]
+          ]
+        ],
+        "LOC": [
+          [
+            [
+              0,
+              48,
+              230,
+              164
+            ]
+          ]
+        ]
+      },
+      "model_prediction": "left\nExplanation:\nThe airplane {BOX0} is on the left.\nBoxes:\n{BOX0}: [0, 0, 317, 81]",
+      "prompt": "Answer the visual question and generate an explanation with grounded boxes of the objectives in the image. The boxes are in the form of [x1, y1, x2, y2].\n\nQuestion: Which color do you think the floor has?\nAnswer:\ngray\nExplanation:\nThe floor {BOX0} is gray.\nBoxes:\n{BOX0}: [56, 275, 432, 376]\n\nQuestion: On which side of the photo is the old vehicle?\nAnswer:\nleft\nExplanation:\nThe old vehicle {BOX0} is located here {BOX1}.\nBoxes:\n{BOX0}: [0, 102, 175, 303]\n{BOX1}: [0, 102, 175, 303]\n\nQuestion: Is the man that is to the right of the woman wearing a suit?\nAnswer:\nno\nExplanation:\nThere is no suit that the man {BOX1} to the right of the woman {BOX0} is wearing.\nBoxes:\n{BOX0}: [31, 36, 210, 360]\n{BOX1}: [0, 43, 49, 110]\n\nQuestion: Are there either glasses or ties in the image?\nAnswer:\nno\nExplanation:\nThere is neither glasses nor a tie.\n\nQuestion: Are the glass and the picture frame made of the same material?\nAnswer:\nno\nExplanation:\nThe glass {BOX0} is made of glass, the picture frame {BOX1} is made of wood.\nBoxes:\n{BOX0}: [47, 0, 373, 484]\n{BOX1}: [119, 275, 167, 320]\n\nQuestion: Does the man below the frame sit on a couch?\nAnswer:\nyes\nExplanation:\nThe couch {BOX2} that the man {BOX1} below the frame {BOX0} is sitting on.\nBoxes:\n{BOX0}: [49, 257, 155, 357]\n{BOX1}: [196, 201, 271, 307]\n{BOX2}: [69, 170, 93, 192]\n\nQuestion: Is the cup on the left side or on the right?\nAnswer:\nright\nExplanation:\nThe cup {BOX0} is on the left.\nBoxes:\n{BOX0}: [14, 181, 123, 349]\n\nQuestion: Is the license plate both black and small?\nAnswer:\nyes\nExplanation:\nThere is a black and small license plate {BOX0}.\nBoxes:\n{BOX0}: [118, 382, 294, 474]\n\nQuestion: On which side of the photo is the airplane?\nAnswer:\n",
+      "time_metrics": {
+        "total_duration_ns": 8572550167,
+        "load_duration_ns": 68227133,
+        "prompt_eval_count": 943,
+        "prompt_eval_duration_ns": 1890120466,
+        "eval_count": 40,
+        "eval_duration_ns": 6607143655
+      }
+    },
+    {
+      "split": "test",
+      "id": "17746142",
+      "image_id": "2368062",
+      "image_file": "2368062.jpg",
+      "question": "Are the magazines to the left of the person that is wearing a shirt?",
+      "ground_truth": "yes",
+      "explanation": "The magazine [BOX] is to the left of the girl [BOX].",
+      "boxes": {
+        "magazine": [
+          [
+            [
+              378,
+              230,
+              406,
+              333
+            ]
+          ]
+        ],
+        "girl": [
+          [
+            [
+              438,
+              245,
+              499,
+              333
+            ]
+          ]
+        ]
+      },
+      "model_prediction": "yes\nExplanation:\nThe magazines {BOX0} are to the left of the person {BOX1} wearing a shirt.\nBoxes:\n{BOX0}: [197, 206, 256, 374]\n{BOX1}: [177, 335, 268, 396]",
+      "prompt": "Answer the visual question and generate an explanation with grounded boxes of the objectives in the image. The boxes are in the form of [x1, y1, x2, y2].\n\nQuestion: Which color do you think the floor has?\nAnswer:\ngray\nExplanation:\nThe floor {BOX0} is gray.\nBoxes:\n{BOX0}: [56, 275, 432, 376]\n\nQuestion: On which side of the photo is the old vehicle?\nAnswer:\nleft\nExplanation:\nThe old vehicle {BOX0} is located here {BOX1}.\nBoxes:\n{BOX0}: [0, 102, 175, 303]\n{BOX1}: [0, 102, 175, 303]\n\nQuestion: Is the man that is to the right of the woman wearing a suit?\nAnswer:\nno\nExplanation:\nThere is no suit that the man {BOX1} to the right of the woman {BOX0} is wearing.\nBoxes:\n{BOX0}: [31, 36, 210, 360]\n{BOX1}: [0, 43, 49, 110]\n\nQuestion: Are there either glasses or ties in the image?\nAnswer:\nno\nExplanation:\nThere is neither glasses nor a tie.\n\nQuestion: Are the glass and the picture frame made of the same material?\nAnswer:\nno\nExplanation:\nThe glass {BOX0} is made of glass, the picture frame {BOX1} is made of wood.\nBoxes:\n{BOX0}: [47, 0, 373, 484]\n{BOX1}: [119, 275, 167, 320]\n\nQuestion: Does the man below the frame sit on a couch?\nAnswer:\nyes\nExplanation:\nThe couch {BOX2} that the man {BOX1} below the frame {BOX0} is sitting on.\nBoxes:\n{BOX0}: [49, 257, 155, 357]\n{BOX1}: [196, 201, 271, 307]\n{BOX2}: [69, 170, 93, 192]\n\nQuestion: Is the cup on the left side or on the right?\nAnswer:\nright\nExplanation:\nThe cup {BOX0} is on the left.\nBoxes:\n{BOX0}: [14, 181, 123, 349]\n\nQuestion: Is the license plate both black and small?\nAnswer:\nyes\nExplanation:\nThere is a black and small license plate {BOX0}.\nBoxes:\n{BOX0}: [118, 382, 294, 474]\n\nQuestion: Are the magazines to the left of the person that is wearing a shirt?\nAnswer:\n",
+      "time_metrics": {
+        "total_duration_ns": 15722593736,
+        "load_duration_ns": 105599959,
+        "prompt_eval_count": 948,
+        "prompt_eval_duration_ns": 1864733991,
+        "eval_count": 80,
+        "eval_duration_ns": 13746545091
+      }
+    },
+    {
+      "split": "test",
+      "id": "13113001",
+      "image_id": "2356576",
+      "image_file": "2356576.jpg",
+      "question": "Do you see pictures to the left of the red curtain that is to the left of the mug?",
+      "ground_truth": "yes",
+      "explanation": "There is the picture [BOX] to the left of the red curtain [BOX] to the left of the mug [BOX].",
+      "boxes": {
+        "picture": [
+          [
+            [
+              212,
+              236,
+              235,
+              269
+            ]
+          ]
+        ],
+        "curtain": [
+          [
+            [
+              291,
+              1,
+              355,
+              260
+            ]
+          ]
+        ],
+        "mug": [
+          [
+            [
+              475,
+              186,
+              492,
+              212
+            ]
+          ]
+        ]
+      },
+      "model_prediction": "yes\nExplanation:\nThe pictures {BOX0} are to the left of the red curtain {BOX1} that is to the left of the mug {BOX2}.\nBoxes:\n{BOX0}: [26, 134, 83, 211]\n{BOX1}: [298, 185, 339, 291]\n{BOX2}: [404, 225, 436, 285]",
+      "prompt": "Answer the visual question and generate an explanation with grounded boxes of the objectives in the image. The boxes are in the form of [x1, y1, x2, y2].\n\nQuestion: Which color do you think the floor has?\nAnswer:\ngray\nExplanation:\nThe floor {BOX0} is gray.\nBoxes:\n{BOX0}: [56, 275, 432, 376]\n\nQuestion: On which side of the photo is the old vehicle?\nAnswer:\nleft\nExplanation:\nThe old vehicle {BOX0} is located here {BOX1}.\nBoxes:\n{BOX0}: [0, 102, 175, 303]\n{BOX1}: [0, 102, 175, 303]\n\nQuestion: Is the man that is to the right of the woman wearing a suit?\nAnswer:\nno\nExplanation:\nThere is no suit that the man {BOX1} to the right of the woman {BOX0} is wearing.\nBoxes:\n{BOX0}: [31, 36, 210, 360]\n{BOX1}: [0, 43, 49, 110]\n\nQuestion: Are there either glasses or ties in the image?\nAnswer:\nno\nExplanation:\nThere is neither glasses nor a tie.\n\nQuestion: Are the glass and the picture frame made of the same material?\nAnswer:\nno\nExplanation:\nThe glass {BOX0} is made of glass, the picture frame {BOX1} is made of wood.\nBoxes:\n{BOX0}: [47, 0, 373, 484]\n{BOX1}: [119, 275, 167, 320]\n\nQuestion: Does the man below the frame sit on a couch?\nAnswer:\nyes\nExplanation:\nThe couch {BOX2} that the man {BOX1} below the frame {BOX0} is sitting on.\nBoxes:\n{BOX0}: [49, 257, 155, 357]\n{BOX1}: [196, 201, 271, 307]\n{BOX2}: [69, 170, 93, 192]\n\nQuestion: Is the cup on the left side or on the right?\nAnswer:\nright\nExplanation:\nThe cup {BOX0} is on the left.\nBoxes:\n{BOX0}: [14, 181, 123, 349]\n\nQuestion: Is the license plate both black and small?\nAnswer:\nyes\nExplanation:\nThere is a black and small license plate {BOX0}.\nBoxes:\n{BOX0}: [118, 382, 294, 474]\n\nQuestion: Do you see pictures to the left of the red curtain that is to the left of the mug?\nAnswer:\n",
+      "time_metrics": {
+        "total_duration_ns": 20812235311,
+        "load_duration_ns": 74894088,
+        "prompt_eval_count": 953,
+        "prompt_eval_duration_ns": 1940436433,
+        "eval_count": 112,
+        "eval_duration_ns": 18790560848
+      }
+    },
+    {
+      "split": "test",
+      "id": "041016961",
+      "image_id": "2393938",
+      "image_file": "2393938.jpg",
+      "question": "Who is riding the bicycle?",
+      "ground_truth": "woman",
+      "explanation": "The person [BOX] riding the bicycle [BOX] is a woman.",
+      "boxes": {
+        "person": [
+          [
+            [
+              42,
+              250,
+              60,
+              277
+            ]
+          ]
+        ],
+        "bicycle": [
+          [
+            [
+              38,
+              270,
+              65,
+              287
+            ]
+          ]
+        ]
+      },
+      "model_prediction": "There is a man riding the bicycle {BOX0}.\nBoxes:\n{BOX0}: [228, 322, 322, 434]",
+      "prompt": "Answer the visual question and generate an explanation with grounded boxes of the objectives in the image. The boxes are in the form of [x1, y1, x2, y2].\n\nQuestion: Which color do you think the floor has?\nAnswer:\ngray\nExplanation:\nThe floor {BOX0} is gray.\nBoxes:\n{BOX0}: [56, 275, 432, 376]\n\nQuestion: On which side of the photo is the old vehicle?\nAnswer:\nleft\nExplanation:\nThe old vehicle {BOX0} is located here {BOX1}.\nBoxes:\n{BOX0}: [0, 102, 175, 303]\n{BOX1}: [0, 102, 175, 303]\n\nQuestion: Is the man that is to the right of the woman wearing a suit?\nAnswer:\nno\nExplanation:\nThere is no suit that the man {BOX1} to the right of the woman {BOX0} is wearing.\nBoxes:\n{BOX0}: [31, 36, 210, 360]\n{BOX1}: [0, 43, 49, 110]\n\nQuestion: Are there either glasses or ties in the image?\nAnswer:\nno\nExplanation:\nThere is neither glasses nor a tie.\n\nQuestion: Are the glass and the picture frame made of the same material?\nAnswer:\nno\nExplanation:\nThe glass {BOX0} is made of glass, the picture frame {BOX1} is made of wood.\nBoxes:\n{BOX0}: [47, 0, 373, 484]\n{BOX1}: [119, 275, 167, 320]\n\nQuestion: Does the man below the frame sit on a couch?\nAnswer:\nyes\nExplanation:\nThe couch {BOX2} that the man {BOX1} below the frame {BOX0} is sitting on.\nBoxes:\n{BOX0}: [49, 257, 155, 357]\n{BOX1}: [196, 201, 271, 307]\n{BOX2}: [69, 170, 93, 192]\n\nQuestion: Is the cup on the left side or on the right?\nAnswer:\nright\nExplanation:\nThe cup {BOX0} is on the left.\nBoxes:\n{BOX0}: [14, 181, 123, 349]\n\nQuestion: Is the license plate both black and small?\nAnswer:\nyes\nExplanation:\nThere is a black and small license plate {BOX0}.\nBoxes:\n{BOX0}: [118, 382, 294, 474]\n\nQuestion: Who is riding the bicycle?\nAnswer:\n",
+      "time_metrics": {
+        "total_duration_ns": 8579614016,
+        "load_duration_ns": 70421242,
+        "prompt_eval_count": 939,
+        "prompt_eval_duration_ns": 1948366439,
+        "eval_count": 40,
+        "eval_duration_ns": 6556256088
+      }
+    },
+    {
+      "split": "test",
+      "id": "19894019",
+      "image_id": "2317127",
+      "image_file": "2317127.jpg",
+      "question": "What color are the walls?",
+      "ground_truth": "green",
+      "explanation": "The wall [BOX] is green.",
+      "boxes": {
+        "wall": [
+          [
+            [
+              322,
+              63,
+              492,
+              165
+            ]
+          ]
+        ]
+      },
+      "model_prediction": "green\nExplanation:\nThe walls {BOX0} are green.\nBoxes:\n{BOX0}: [0, 0, 529, 494]",
+      "prompt": "Answer the visual question and generate an explanation with grounded boxes of the objectives in the image. The boxes are in the form of [x1, y1, x2, y2].\n\nQuestion: Which color do you think the floor has?\nAnswer:\ngray\nExplanation:\nThe floor {BOX0} is gray.\nBoxes:\n{BOX0}: [56, 275, 432, 376]\n\nQuestion: On which side of the photo is the old vehicle?\nAnswer:\nleft\nExplanation:\nThe old vehicle {BOX0} is located here {BOX1}.\nBoxes:\n{BOX0}: [0, 102, 175, 303]\n{BOX1}: [0, 102, 175, 303]\n\nQuestion: Is the man that is to the right of the woman wearing a suit?\nAnswer:\nno\nExplanation:\nThere is no suit that the man {BOX1} to the right of the woman {BOX0} is wearing.\nBoxes:\n{BOX0}: [31, 36, 210, 360]\n{BOX1}: [0, 43, 49, 110]\n\nQuestion: Are there either glasses or ties in the image?\nAnswer:\nno\nExplanation:\nThere is neither glasses nor a tie.\n\nQuestion: Are the glass and the picture frame made of the same material?\nAnswer:\nno\nExplanation:\nThe glass {BOX0} is made of glass, the picture frame {BOX1} is made of wood.\nBoxes:\n{BOX0}: [47, 0, 373, 484]\n{BOX1}: [119, 275, 167, 320]\n\nQuestion: Does the man below the frame sit on a couch?\nAnswer:\nyes\nExplanation:\nThe couch {BOX2} that the man {BOX1} below the frame {BOX0} is sitting on.\nBoxes:\n{BOX0}: [49, 257, 155, 357]\n{BOX1}: [196, 201, 271, 307]\n{BOX2}: [69, 170, 93, 192]\n\nQuestion: Is the cup on the left side or on the right?\nAnswer:\nright\nExplanation:\nThe cup {BOX0} is on the left.\nBoxes:\n{BOX0}: [14, 181, 123, 349]\n\nQuestion: Is the license plate both black and small?\nAnswer:\nyes\nExplanation:\nThere is a black and small license plate {BOX0}.\nBoxes:\n{BOX0}: [118, 382, 294, 474]\n\nQuestion: What color are the walls?\nAnswer:\n",
+      "time_metrics": {
+        "total_duration_ns": 8434018576,
+        "load_duration_ns": 78108619,
+        "prompt_eval_count": 939,
+        "prompt_eval_duration_ns": 1950678037,
+        "eval_count": 39,
+        "eval_duration_ns": 6399499986
+      }
+    },
+    {
+      "split": "test",
+      "id": "12845828",
+      "image_id": "2384642",
+      "image_file": "2384642.jpg",
+      "question": "Where is the snow?",
+      "ground_truth": "mountain",
+      "explanation": "The place [BOX] where the snow [BOX] is on is the mountain.",
+      "boxes": {
+        "place": [
+          [
+            [
+              0,
+              94,
+              352,
+              172
+            ]
+          ]
+        ],
+        "snow": [
+          [
+            [
+              60,
+              102,
+              111,
+              116
+            ]
+          ]
+        ]
+      },
+      "model_prediction": "There is no snow in the image.",
+      "prompt": "Answer the visual question and generate an explanation with grounded boxes of the objectives in the image. The boxes are in the form of [x1, y1, x2, y2].\n\nQuestion: Which color do you think the floor has?\nAnswer:\ngray\nExplanation:\nThe floor {BOX0} is gray.\nBoxes:\n{BOX0}: [56, 275, 432, 376]\n\nQuestion: On which side of the photo is the old vehicle?\nAnswer:\nleft\nExplanation:\nThe old vehicle {BOX0} is located here {BOX1}.\nBoxes:\n{BOX0}: [0, 102, 175, 303]\n{BOX1}: [0, 102, 175, 303]\n\nQuestion: Is the man that is to the right of the woman wearing a suit?\nAnswer:\nno\nExplanation:\nThere is no suit that the man {BOX1} to the right of the woman {BOX0} is wearing.\nBoxes:\n{BOX0}: [31, 36, 210, 360]\n{BOX1}: [0, 43, 49, 110]\n\nQuestion: Are there either glasses or ties in the image?\nAnswer:\nno\nExplanation:\nThere is neither glasses nor a tie.\n\nQuestion: Are the glass and the picture frame made of the same material?\nAnswer:\nno\nExplanation:\nThe glass {BOX0} is made of glass, the picture frame {BOX1} is made of wood.\nBoxes:\n{BOX0}: [47, 0, 373, 484]\n{BOX1}: [119, 275, 167, 320]\n\nQuestion: Does the man below the frame sit on a couch?\nAnswer:\nyes\nExplanation:\nThe couch {BOX2} that the man {BOX1} below the frame {BOX0} is sitting on.\nBoxes:\n{BOX0}: [49, 257, 155, 357]\n{BOX1}: [196, 201, 271, 307]\n{BOX2}: [69, 170, 93, 192]\n\nQuestion: Is the cup on the left side or on the right?\nAnswer:\nright\nExplanation:\nThe cup {BOX0} is on the left.\nBoxes:\n{BOX0}: [14, 181, 123, 349]\n\nQuestion: Is the license plate both black and small?\nAnswer:\nyes\nExplanation:\nThere is a black and small license plate {BOX0}.\nBoxes:\n{BOX0}: [118, 382, 294, 474]\n\nQuestion: Where is the snow?\nAnswer:\n",
+      "time_metrics": {
+        "total_duration_ns": 3400822115,
+        "load_duration_ns": 80784229,
+        "prompt_eval_count": 938,
+        "prompt_eval_duration_ns": 1973405820,
+        "eval_count": 9,
+        "eval_duration_ns": 1338810851
+      }
+    }
+  ]
+}
