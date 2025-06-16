@@ -55,12 +55,12 @@ python scripts/prepare_data.py --task sme --output data/sme
 ```bash
 python scripts/prepare_data.py --task vqa_rad --output data/vqa_rad
 ```
-1. OmniMed-VQA:
+3. OmniMed-VQA:
 ```bash
 python scripts/prepare_data.py --task omnimed_vqa --output data/omnimed_vqa
 ```
 
-3. ERQA:
+4. ERQA:
 ```bash
 python scripts/prepare_data.py --task erqa --output data/erqa
 ```
