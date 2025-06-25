@@ -105,7 +105,6 @@ class SMETask(BaseTask):
                 
                 # Get model prediction
                 prediction = model.process_image(image_path, prompt)
-                print(prediction)
                 model_answer = str(prediction.get("response", "")).strip()
                 all_predictions.append(model_answer)
                 all_targets.append(example_data["answer"])
