@@ -33,55 +33,49 @@ class ERQATask(BaseTask):
         }
         
     def load_data(self) -> None:
-        """Load ERQA dataset with optional sampling"""
-        parquet_file = os.path.join(self.data_path, "erqa.parquet")
-        if not os.path.exists(parquet_file):
-            raise FileNotFoundError(f"ERQA data not found at {parquet_file}")
+        """Load ERQA dataset from CSV file and images folder"""
+        csv_file = os.path.join(self.data_path, "output.csv")
+        images_dir = os.path.join(self.data_path, "images")
         
-        print(f"Loading ERQA dataset from {parquet_file}...")
+        if not os.path.exists(csv_file):
+            raise FileNotFoundError(f"ERQA CSV data not found at {csv_file}")
+        if not os.path.exists(images_dir):
+            raise FileNotFoundError(f"ERQA images directory not found at {images_dir}")
+        
+        print(f"Loading ERQA dataset from {csv_file}...")
         
         try:
-            # Read the parquet file
-            df = pd.read_parquet(parquet_file)
-            # Convert DataFrame to list of dicts, handling image data separately
+            # Read the CSV file
+            df = pd.read_csv(csv_file)
+            
+            # Convert DataFrame to list of dicts, loading images from the images directory
             all_data = []
             for _, row in df.iterrows():
-                # Convert row to dict, excluding the images column first
-                item = {col: row[col] for col in df.columns if col != 'images'}
-                
-                # Handle images - convert bytes to PIL Images
-                images = row['images']
-                if isinstance(images, bytes):
-                    # Single image as bytes
-                    try:
-                        image = Image.open(io.BytesIO(images))
-                        item['images'] = [image]
-                    except Exception as e:
-                        print(f"Error decoding single image: {e}")
-                        continue
-                elif isinstance(images, (list, np.ndarray)):
-                    # Multiple images as bytes
-                    decoded_images = []
-                    for img_bytes in images:
-                        if isinstance(img_bytes, bytes):
-                            try:
-                                image = Image.open(io.BytesIO(img_bytes))
-                                decoded_images.append(image)
-                            except Exception as e:
-                                print(f"Error decoding image in sequence: {e}")
-                                continue
-                    if decoded_images:  # Only add if we successfully decoded some images
-                        item['images'] = decoded_images
+                try:
+                    # Convert row to dict
+                    item = row.to_dict()
+                    
+                    # Convert string representation of lists back to actual lists
+                    if isinstance(item['image_paths'], str):
+                        # Handle string representation of list
+                        image_paths = eval(item['image_paths'])  # Safely evaluate string representation of list
                     else:
-                        continue
-                else:
-                    print(f"Unexpected image data type: {type(images)}")
+                        image_paths = item['image_paths']
+                    
+                    if isinstance(item['visual_indices'], str):
+                        item['visual_indices'] = eval(item['visual_indices'])
+                    
+                    if isinstance(item['question_type'], str):
+                        item['question_type'] = eval(item['question_type'])[0]  # Take first question type if it's a list
+                    item['image_paths'] = [os.path.join(images_dir, img_path) for img_path in image_paths]
+                    all_data.append(item)
+                    
+                except Exception as e:
+                    print(f"Error processing row: {e}")
                     continue
-                
-                all_data.append(item)
             
             if not all_data:
-                raise ValueError("No data was loaded from the parquet file")
+                raise ValueError("No data was loaded from the CSV file")
             
             print(f"Total questions loaded: {len(all_data)}")
             
@@ -120,13 +114,13 @@ class ERQATask(BaseTask):
         except Exception as e:
             raise Exception(f"Error loading ERQA dataset: {e}")
         
+        
     def format_prompt(self, example: Dict[str, Any]) -> str:
         """Format ERQA question with context"""
         prompt = "You are a robotics expert. Please analyze the robotic scene and answer the following question.\n\n"
         
         # Add question type and ID
         prompt += f"Question Type: {example['question_type']}\n"
-        prompt += f"Question ID: {example['question_id']}\n"
         
         # Add the main question
         prompt += f"Question: {example['question']}\n"
@@ -141,7 +135,7 @@ class ERQATask(BaseTask):
                     prompt += f"Focus on this part of the image: {indices[0]}\n"
         
         # Add temporal context if multiple images
-        images = example["images"]
+        images = example["image_paths"]
         if isinstance(images, list) and len(images) > 1:
             prompt += f"\nThis question involves analyzing a sequence of {len(images)} images showing different stages or viewpoints of the robotic scene.\n"
         
@@ -201,16 +195,13 @@ class ERQATask(BaseTask):
         
         for example in self.data:
             # Get images directly from the example
-            print(f"Example: {example}")
-            images = example["images"]
+            images = example["image_paths"]
             if not isinstance(images, list):
                 images = [images]
                 
             prompt = self.format_prompt(example)
             
             try:
-                # Get model prediction using the images directly
-                print(f"Images: {images}")
                 prediction = model.process_images(images, prompt)
                 model_answer = str(prediction.get("response", "")).strip()
                 
@@ -220,7 +211,6 @@ class ERQATask(BaseTask):
                 
                 # Store prediction details
                 result_entry = {
-                    "question_id": example["question_id"],
                     "question_type": example["question_type"],
                     "question": example["question"],
                     "ground_truth": example["answer"],
@@ -228,13 +218,13 @@ class ERQATask(BaseTask):
                     "prompt": prompt,
                     "num_images": len(images),
                     "visual_indices": example.get("visual_indices", []),
-                    "time_metrics": prediction.get("time_metrics", {})
+                    "time_metrics": prediction.get("ollama_metrics", {})
                 }
                 results["predictions"].append(result_entry)
                 
             except Exception as e:
                 raise e
-                print(f"Error processing example {example['question_id']}: {e}")
+                print(f"Error processing example {example['question']}: {e}")
                 print(f"Number of images: {len(images)}")
                 continue
         
