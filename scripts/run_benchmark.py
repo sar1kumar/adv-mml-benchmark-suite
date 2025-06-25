@@ -14,6 +14,7 @@ from benchmark_suite.tasks.sme_task import SMETask
 from benchmark_suite.tasks.vqa_rad import VQARADTask
 from benchmark_suite.tasks.embodied_vqa import EmbodiedVQATask
 from benchmark_suite.tasks.omni_vqa import OmniMedVQATask
+from benchmark_suite.tasks.erqa import ERQATask
 
 def load_config(config_path: str) -> Dict[str, Any]:
     """Load and validate benchmark configuration"""
@@ -48,6 +49,8 @@ def get_task(task_name: str, task_config: Dict[str, Any]):
         return VQARADTask(task_config)
     elif task_name == "embodied_vqa":
         return EmbodiedVQATask(task_config)
+    elif task_name == "erqa":
+        return ERQATask(task_config)
     else:
         raise ValueError(f"Unsupported task: {task_name}")
 

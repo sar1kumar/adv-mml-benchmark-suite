@@ -4,6 +4,7 @@ import requests
 import zipfile
 import shutil
 import tqdm
+import pandas as pd
 
 def download_file(url, destination_folder, chunk_size=8192):
     """Downloads a file from a URL to a destination folder."""
@@ -171,10 +172,103 @@ def prepare_omnimed_vqa_data(output_base_dir):
     elif temp_download_dir != omnimed_vqa_data_dir:  # only remove if it's a separate temp dir
         pass
 
+def prepare_erqa_data(output_base_dir):
+    """Prepares data for the ERQA (Embodied Robotics Question Answering) task."""
+    print(f"Preparing ERQA data in {output_base_dir}...")
+    
+    # ERQA dataset URL from the official GitHub repository
+    erqa_url = "https://huggingface.co/datasets/FlagEval/ERQA/resolve/main/data/test-00000-of-00001.parquet"
+    
+    # Create a temporary download directory
+    temp_download_dir = os.path.join(output_base_dir, "temp_download_erqa")
+    os.makedirs(temp_download_dir, exist_ok=True)
+
+    # Download the tfrecord file
+    local_filename = download_file(erqa_url, temp_download_dir)
+    
+    if not local_filename:
+        print("Failed to download ERQA data. Aborting.")
+        shutil.rmtree(temp_download_dir)
+        return
+
+    # Create the final ERQA data directory
+    erqa_data_dir = output_base_dir
+    os.makedirs(erqa_data_dir, exist_ok=True)
+
+    # Move the tfrecord file to the final directory
+    final_path = os.path.join(erqa_data_dir, "erqa.parquet")
+    try:
+        shutil.move(local_filename, final_path)
+        print(f"Moved parquet file to {final_path}")
+    except Exception as e:
+        print(f"Error moving parquet file: {e}")
+        shutil.rmtree(temp_download_dir)
+        return
+
+    # Validate the downloaded dataset
+    try:
+        validate_erqa_dataset(final_path)
+    except Exception as e:
+        print(f"Error validating ERQA dataset: {e}")
+        return
+        
+    print("ERQA data preparation complete.")
+    print(f"Data location: {final_path}")
+
+    # Clean up the temporary download directory
+    if os.path.exists(temp_download_dir):
+        shutil.rmtree(temp_download_dir)
+
+def validate_erqa_dataset(parquet_path):
+    """Validates the ERQA dataset by checking its structure and content."""
+
+    print("Validating ERQA dataset...")
+    
+    try:
+        # Read the parquet file
+        df = pd.read_parquet(parquet_path)
+        
+        # Validate required fields
+        required_fields = ['answer', 'images', 'question_type', 'visual_indices', 'question', 'question_id', 'question_type']
+        missing_fields = [field for field in required_fields if field not in df.columns]
+        
+        if missing_fields:
+            raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+        
+        # Print dataset information
+        print("\nERQA Dataset Structure:")
+        print("-" * 50)
+        print("Fields available:")
+        for column in df.columns:
+            print(f"- {column}")
+            
+        # Print basic statistics
+        print(f"\nTotal examples: {len(df)}")
+        
+        # Print example information
+        print("\nExample Data:")
+        first_row = df.iloc[0]
+        print(f"Question Type: {first_row['question_type']}")
+        print(f"Question: {first_row['question']}")
+        print(f"Answer: {first_row['answer']}")
+        
+        # Print question type distribution
+        print("\nQuestion Type Distribution:")
+        type_dist = df['question_type'].value_counts()
+        for qtype, count in type_dist.items():
+            print(f"- {qtype}: {count} examples")
+        
+        print("\nValidation successful!")
+        return True
+        
+    except Exception as e:
+        print(f"Error validating dataset: {e}")
+        return False
 
 def main():
     parser = argparse.ArgumentParser(description="Download and prepare benchmark datasets.")
-    parser.add_argument("--task", type=str, required=True, choices=["vqa_rad", "sme", "omnimed_vqa", "all"], # Add more tasks as needed
+    parser.add_argument("--task", type=str, required=True, 
+                        choices=["vqa_rad", "sme", "omnimed_vqa", "erqa", "all"], # Add more tasks as needed
                         help="The specific task to prepare data for, or 'all'.")
     parser.add_argument("--output", type=str, required=True,
                         help="The base directory where the task-specific data folder will be created (e.g., data/). The script will create a subfolder named after the task (e.g. data/vqa_rad).")
@@ -196,6 +290,8 @@ def main():
         prepare_sme_data(task_output_dir)
     elif args.task == "omnimed_vqa":
         prepare_omnimed_vqa_data(task_output_dir)
+    elif args.task == "erqa":
+        prepare_erqa_data(task_output_dir)
     elif args.task == "all":
         print("Preparing all datasets...")
         # Call each preparation function
