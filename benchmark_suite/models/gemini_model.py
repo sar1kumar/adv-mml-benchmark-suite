@@ -2,6 +2,7 @@ import os
 import google.generativeai as genai
 from PIL import Image
 from typing import Dict, List, Union, Any
+import base64
 from .base_model import BaseModel
 
 class GeminiModel(BaseModel):
@@ -55,6 +56,22 @@ class GeminiModel(BaseModel):
         image = Image.open(image_path)
         response = self.model.generate_content(
             [prompt, image],
+            generation_config=genai.types.GenerationConfig(
+                temperature=self.temperature,
+                max_output_tokens=self.max_tokens,
+            )
+        )
+        answer = response.text
+        return {"response": answer}
+
+    def process_images(self, images: List[str], prompt: str, **kwargs) -> Dict[str, Any]:
+        """Process images and text prompt for VQA tasks"""
+        if not self.model:
+            self.load_model()
+            
+        image_b64s = [Image.open(image_path) for image_path in images]
+        response = self.model.generate_content(
+            [prompt, *image_b64s],
             generation_config=genai.types.GenerationConfig(
                 temperature=self.temperature,
                 max_output_tokens=self.max_tokens,
