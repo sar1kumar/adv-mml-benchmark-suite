@@ -1,6 +1,6 @@
 # Multimodal Benchmark Suite
 
-A comprehensive benchmark suite for evaluating multimodal language models across various tasks including MMLU, VQA-RAD (medical visual question answering), and EmbodiedVQA. Features both standard and adversarial evaluation capabilities.
+A comprehensive benchmark suite for evaluating multimodal language models across various tasks including FS-MEVQA (SME), VQA-RAD (medical visual question answering), and ERQA. Features both standard and adversarial evaluation capabilities.
 
 ## Features
 
@@ -10,15 +10,13 @@ A comprehensive benchmark suite for evaluating multimodal language models across
 - Multiple benchmark tasks:
   - SME (Standard Multimodal Evaluation)
   - VQA-RAD (visual question answering for radiology)
-  - EmbodiedVQA (embodied visual question answering)
+  - ERQA (embodied reasoning visual question answering)
 - Comprehensive evaluation metrics
   - Adversarial testing framework:
     - Text perturbations (synonyms, typos, negations)
     - Image perturbations (noise, contrast, brightness, text overlay, metadata corruption, filtered images, FGSM)
     - Robustness metrics
 - Configurable via YAML files
-- Parallel execution support
-- Extensive logging (console, file, and W&B)
 - Dataset Sampling
 
 ## Installation
@@ -46,21 +44,21 @@ pip install -r requirements.txt
 
 ## Dataset Preparation
 
-1. SME:
+1. [SME](https://dl.acm.org/doi/10.1145/3664647.3681597):
 ```bash
 python scripts/prepare_data.py --task sme --output data/sme
 ```
 
-2. VQA-RAD:
+2. [VQA-RAD](https://www.nature.com/articles/sdata2018251.pdf):
 ```bash
 python scripts/prepare_data.py --task vqa_rad --output data/vqa_rad
 ```
-3. OmniMed-VQA:
+3. [OmniMed-VQA](https://arxiv.org/pdf/2402.09181v2):
 ```bash
 python scripts/prepare_data.py --task omnimed_vqa --output data/omnimed_vqa
 ```
 
-4. ERQA:
+4. [ERQA](https://github.com/embodiedreasoning/ERQA):
 ```bash
 python scripts/prepare_data.py --task erqa --output data/erqa
 ```
@@ -150,10 +148,9 @@ models:
     temperature: 0.1
 
 tasks:
-  mmlu:
-    type: "text_mmlu"
-    data_path: "data/mmlu"
-    subjects: ["mathematics", "computer_science", "physics", "medicine"]
+  sme:
+    type: "sme"
+    data_path: "data/sme"
     few_shot_k: 5
     metrics: ["accuracy", "f1"]
     
@@ -252,10 +249,46 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## References
+
+```bibtex
+@article{hu2024omnimedvqa,
+  title={OmniMedVQA: A New Large-Scale Comprehensive Evaluation Benchmark for Medical LVLM},
+  author={Hu, Yutao and Li, Tianbin and Lu, Quanfeng and Shao, Wenqi and He, Junjun and Qiao, Yu and Luo, Ping},
+  journal={arXiv preprint arXiv:2402.09181},
+  year={2024}
+}
+```
+```
+@inproceedings{xue2024few,
+  title={Few-Shot Multimodal Explanation for Visual Question Answering},
+  author={Xue, Dizhan and Qian, Shengsheng and Xu, Changsheng},
+  booktitle={Proceedings of the 32nd ACM International Conference on Multimedia},
+  year={2024}
+}
+```
+```
+@inproceedings{OpenEQA2023,
+        title         = {OpenEQA: Embodied Question Answering in the Era of Foundation Models}, 
+        booktitle     = {Conference on Computer Vision and Pattern Recognition (CVPR)},
+        author        = {Majumdar, Arjun and Ajay, Anurag and Zhang, Xiaohan and Putta, Pranav and Yenamandra, Sriram and Henaff, Mikael and Silwal, Sneha and Mcvay, Paul and Maksymets, Oleksandr and Arnaud, Sergio and Yadav, Karmesh and Li, Qiyang and Newman, Ben and Sharma, Mohit and Berges, Vincent and Zhang, Shiqi and Agrawal, Pulkit and Bisk, Yonatan and Batra, Dhruv and Kalakrishnan, Mrinal and Meier, Franziska and Paxton, Chris and Sax, Sasha and Rajeswaran, Aravind},
+        year          = {2024},
+    }
+```
+```
+@article{Lau2018,
+   journal = {Scientific Data},
+   author = {Jason J. Lau and Soumya Gayen and Asma Ben Abacha and Dina Demner-Fushman},
+   publisher = {Nature Publishing Groups},
+   title = {A dataset of clinically generated visual questions and answers about radiology images},
+   year = {2018}
+}
+```
+
 ## Notes
 
 ### Adversarial Mitigation Strategies
 - Image de-noising and reformer through an auto-encoder
-- Distinguishing adversarial and benign samples based on certain criteria (“detector”); 
-- Integrating adversarial samples in model training (“adversarial training”);
+- Distinguishing adversarial and benign samples based on certain criteria ("detector"); 
+- Integrating adversarial samples in model training ("adversarial training");
 - Gradient masking, such as pushing a model gradient to a non-differential or zero, which is effective for gradient-based white-box attacks.
