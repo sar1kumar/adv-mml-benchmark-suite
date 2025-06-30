@@ -3,7 +3,7 @@ models:
     type: "ollama"
     model_name: "gemma3:27b"
     max_tokens: 128000
-    temperature: 1
+    temperature: 1.0
     top_k: 64
     top_p: 0.95
 
@@ -11,9 +11,9 @@ tasks:
   erqa:
     type: "erqa"
     data_path: "data/erqa"
-    sample_size: 2
+    sample_size: 400
     random_seed: 42
-    metrics: ["accuracy", "bleu", "rouge", "meteor", "cider"]
+    metrics: ["accuracy"]
 
 logging:
   wandb:
@@ -23,7 +23,3 @@ logging:
     run_name: "erqa-evaluation"
   save_predictions: True
   output_dir: "results"
-
-device: "cuda"
-batch_size: 8
-num_workers: 4

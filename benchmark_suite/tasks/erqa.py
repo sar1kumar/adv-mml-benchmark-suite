@@ -117,7 +117,7 @@ class ERQATask(BaseTask):
         
     def format_prompt(self, example: Dict[str, Any]) -> str:
         """Format ERQA question with context"""
-        prompt = "You are a robotics expert. Please analyze the robotic scene and answer the following question.\n\n"
+        prompt = "You are a robotics expert. Please analyze the scene and answer the following question.\n\n"
         
         # Add question type and ID
         prompt += f"Question Type: {example['question_type']}\n"
@@ -139,7 +139,7 @@ class ERQATask(BaseTask):
         if isinstance(images, list) and len(images) > 1:
             prompt += f"\nThis question involves analyzing a sequence of {len(images)} images showing different stages or viewpoints of the robotic scene.\n"
         
-        prompt += "\nPlease provide a clear and concise answer based on the image(s).\n"
+        prompt += "\nSelect the correct answer from the above options:\n"
         prompt += "Answer: "
         return prompt
         
@@ -229,10 +229,10 @@ class ERQATask(BaseTask):
                 continue
         
         # Compute metrics
-        '''metrics = self.compute_metrics(
+        metrics = self.compute_metrics(
             all_predictions, all_targets, all_question_types
         )
-        results["metrics"] = metrics'''
+        results["metrics"] = metrics
         
         # Save results
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -250,5 +250,5 @@ class ERQATask(BaseTask):
         return {
             "total_predictions": len(results["predictions"]),
             "output_file": output_file,
-            #**metrics
+            **metrics
         }
