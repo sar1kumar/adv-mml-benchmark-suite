@@ -6,11 +6,11 @@ from typing import Dict, Any, List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import wandb
 
-from .config_parser import ConfigParser
-from .model_manager import ModelManager
-from .task_manager import TaskManager
-from ..models.base_model import BaseModel
-from ..tasks.base_task import BaseTask
+from benchmark_suite.core.config_parser import ConfigParser
+from benchmark_suite.core.model_manager import ModelManager
+from benchmark_suite.core.task_manager import TaskManager
+from benchmark_suite.models.base_model import BaseModel
+from benchmark_suite.tasks.base_task import BaseTask
 
 class Orchestrator:
     """Coordinates benchmark evaluation across models and tasks"""

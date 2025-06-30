@@ -25,7 +25,7 @@ class GemmaModel(BaseModel):
         except Exception as e:
             raise RuntimeError(f"Failed to connect to Ollama: {str(e)}")
             
-    def _call_ollama(self, prompt: str, images: List[str] = None) -> Dict[str, Any]:
+    def _call_ollama(self, prompt: str, images: List[str] = []) -> Dict[str, Any]:
         """Make API call to Ollama"""
         payload = {
             "model": self.model_name,

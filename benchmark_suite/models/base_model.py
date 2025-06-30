@@ -20,7 +20,12 @@ class BaseModel(ABC):
     def process_image(self, image_path: str, prompt: str, **kwargs) -> str:
         """Process image and text prompt for VQA tasks."""
         pass
-        
+    
+    @abstractmethod
+    def process_images(self, audio_path: str, prompt: str, **kwargs) -> str:
+        """Process audio and text prompt for audio-based tasks."""
+        pass
+    
     @abstractmethod
     def process_video(self, video_path: str, prompt: str, **kwargs) -> str:
         """Process video and text prompt for video-based tasks."""
