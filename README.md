@@ -114,14 +114,14 @@ The adversarial evaluation includes:
   - Synonym replacement using WordNet
   - Controlled typo introduction
   - Negation addition/removal
-  - Image perturbations (for VQA tasks):
-    - Gaussian noise injection
-    - Contrast modification
-    - Brightness adjustment
-    - Text overlay or occlusion
-    - Metadata (EXIF) corruption
-    - Filtered/manipulated images
-    - Gradient-based attack (FGSM)
+- Image perturbations (for VQA tasks):
+  - Gaussian noise injection
+  - Contrast modification
+  - Brightness adjustment
+  - Text overlay or occlusion
+  - Metadata (EXIF) corruption
+  - Filtered/manipulated images
+  - Gradient-based attack (FGSM)
 - Robustness metrics:
   - Performance degradation
   - Absolute performance gap
