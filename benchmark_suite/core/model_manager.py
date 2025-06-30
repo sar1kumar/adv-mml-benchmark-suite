@@ -1,8 +1,8 @@
 import importlib
 from typing import Dict, Any, Type
-from ..models.base_model import BaseModel
-from ..models.gemma_model import GemmaModel
-from ..models.gemini_model import GeminiModel
+from benchmark_suite.models.base_model import BaseModel
+from benchmark_suite.models.gemma_model import GemmaModel
+from benchmark_suite.models.gemini_model import GeminiModel
 
 class ModelManager:
     """Manages loading and initialization of models"""

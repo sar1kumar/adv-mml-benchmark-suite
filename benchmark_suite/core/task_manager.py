@@ -1,17 +1,21 @@
 import importlib
 from typing import Dict, Any, Type
-from ..tasks.base_task import BaseTask
-from ..tasks.text_mmlu import MMLUTask
-from ..tasks.vqa_rad import VQARADTask
-from ..tasks.embodied_vqa import EmbodiedVQATask
+
+from benchmark_suite.tasks.base_task import BaseTask
+from benchmark_suite.tasks.vqa_rad import VQARADTask
+from benchmark_suite.tasks.erqa import ERQATask
+from benchmark_suite.tasks.sme_task import SMETask
+from benchmark_suite.tasks.omni_vqa import OmniMedVQATask
 
 class TaskManager:
     """Manages task registration and initialization"""
     
     _TASK_REGISTRY = {
-        "mmlu": MMLUTask,
         "vqa_rad": VQARADTask,
-        "embodied_vqa": EmbodiedVQATask
+        "erqa": ERQATask,
+        "sme": SMETask,
+        "omnimed_vqa": OmniMedVQATask
+
     }
     
     @classmethod
