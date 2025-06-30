@@ -259,7 +259,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   year={2024}
 }
 ```
-```
+```bibtex
 @inproceedings{xue2024few,
   title={Few-Shot Multimodal Explanation for Visual Question Answering},
   author={Xue, Dizhan and Qian, Shengsheng and Xu, Changsheng},
@@ -267,7 +267,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   year={2024}
 }
 ```
-```
+```bibtex
 @inproceedings{OpenEQA2023,
         title         = {OpenEQA: Embodied Question Answering in the Era of Foundation Models}, 
         booktitle     = {Conference on Computer Vision and Pattern Recognition (CVPR)},
@@ -275,7 +275,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
         year          = {2024},
     }
 ```
-```
+```bibtex
 @article{Lau2018,
    journal = {Scientific Data},
    author = {Jason J. Lau and Soumya Gayen and Asma Ben Abacha and Dina Demner-Fushman},
