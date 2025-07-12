@@ -51,7 +51,7 @@ class ConfigParser:
                 raise TypeError(f"Field '{field}' must be of type {field_type.__name__}")
                 
         # Validate metrics
-        valid_metrics = ["accuracy", "f1", "bleu", "rouge"]
+        valid_metrics = ["accuracy", "f1", "bleu", "rouge", "mean_iou"]
         for metric in config["metrics"]:
             if metric not in valid_metrics:
                 raise ValueError(f"Invalid metric: {metric}. Must be one of {valid_metrics}")
