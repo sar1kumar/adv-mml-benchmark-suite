@@ -1,0 +1,41 @@
+models:
+  gemini-2.5-flash-batch:
+    type: "api"
+    mode: "batch" # Specify batch mode
+    model_name: "gemini-2.5-flash-001"
+    api_key: "${GEMINI_API_KEY}" # Loaded from environment
+    project_id: "your-gcp-project-id" # <-- IMPORTANT: CHANGE THIS
+    location: "us-central1" # Or your preferred GCP location
+
+    # Batch-specific configuration
+    batch_config:
+      gcs_bucket: "gs://your-benchmark-suite-bucket" # <-- IMPORTANT: CHANGE THIS
+      
+      # Controls whether to upload images from `task.data_path`.
+      # If false, it assumes images are already at `gcs_image_prefix`.
+      upload_images: true 
+      
+      # GCS location of images for the model to access during the batch job.
+      gcs_image_prefix: "gs://your-benchmark-suite-bucket/erqa/images"
+      
+      # GCS location for the batch job's output from Vertex AI.
+      output_prefix: "gs://your-benchmark-suite-bucket/erqa/batch_outputs"
+      
+      # --- Optional Overrides for advanced use ---
+      # To use pre-existing files on GCS instead of generating them, uncomment these lines:
+      # gcs_requests_file: "gs://your-benchmark-suite-bucket/erqa/requests_pregen.jsonl"
+      # gcs_metadata_file: "gs://your-benchmark-suite-bucket/erqa/metadata_pregen.json"
+
+      # Controls whether the script waits for the job to finish.
+      wait_for_completion: true
+      poll_interval: 60 # Seconds to wait between status checks.
+
+tasks:
+  erqa:
+    type: "erqa"
+    # Local path to the dataset, used if `upload_images` is true.
+    data_path: "data/erqa" 
+    metrics: ["accuracy"]
+
+logging:
+  output_dir: "results"
