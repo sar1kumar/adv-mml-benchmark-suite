@@ -252,3 +252,158 @@ class ERQATask(BaseTask):
             "output_file": output_file,
             **metrics
         }
+
+    # --- Batch Processing Methods ---
+
+    def supports_batch_processing(self) -> bool:
+        """Enable batch processing for ERQA task."""
+        return True
+
+    def get_image_paths(self) -> List[str]:
+        """Return a list of all unique local image paths required for the task."""
+        if not self.data:
+            self.load_data()
+        
+        all_image_paths = set()
+        for example in self.data:
+            image_paths = example.get("image_paths", [])
+            if isinstance(image_paths, list):
+                for path in image_paths:
+                    if os.path.exists(path):
+                        all_image_paths.add(path)
+            elif isinstance(image_paths, str) and os.path.exists(image_paths):
+                all_image_paths.add(image_paths)
+        
+        return list(all_image_paths)
+
+    def prepare_batch_data(self) -> List[Dict[str, Any]]:
+        """Load and structure the ERQA dataset for batch processing."""
+        if not self.data:
+            self.load_data()
+        
+        batch_data = []
+        for idx, example in enumerate(self.data):
+            # Ensure image_paths is a list
+            image_paths = example.get("image_paths", [])
+            if not isinstance(image_paths, list):
+                image_paths = [image_paths]
+            
+            batch_example = {
+                "example_id": f"erqa_{idx}",
+                "question_type": example.get("question_type"),
+                "question": example.get("question"),
+                "visual_indices": example.get("visual_indices", []),
+                "image_paths": image_paths,
+                "ground_truth": example.get("answer"),
+                "prompt": self.format_prompt(example)
+            }
+            batch_data.append(batch_example)
+        
+        return batch_data
+
+    def format_batch_request(self, example: Dict[str, Any], gcs_image_prefix: str) -> Dict[str, Any]:
+        """Format a single ERQA example for the Vertex AI batch prediction API."""
+        # Use the existing format_prompt method to create the prompt
+        prompt = example["prompt"]
+        
+        # Convert local image paths to GCS paths
+        gcs_image_paths = []
+        for local_path in example["image_paths"]:
+            image_filename = os.path.basename(local_path)
+            gcs_path = f"{gcs_image_prefix}/{image_filename}"
+            gcs_image_paths.append(gcs_path)
+        
+        # Create the parts array - start with text prompt
+        parts = [{"text": prompt}]
+        
+        # Add each image as a file_data part
+        for gcs_image_path in gcs_image_paths:
+            parts.append({
+                "file_data": {
+                    "file_uri": gcs_image_path,
+                    "mime_type": "image/jpeg"
+                }
+            })
+        
+        return {
+            "request": {
+                "contents": [
+                    {
+                        "role": "user",
+                        "parts": parts
+                    }
+                ],
+                "generationConfig": {
+                    "temperature": 1.0,
+                    "maxOutputTokens": 8192,
+                    "top_p": 0.95,
+                    "top_k": 64
+                }
+            }
+        }
+
+    def evaluate_batch_results(self, batch_results_path: str, metadata_path: str) -> Dict[str, Any]:
+        """Process completed batch job results and compute metrics."""
+        # Load metadata
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+        
+        # Load and parse batch results
+        predictions = []
+        with open(batch_results_path, 'r') as f:
+            for line in f:
+                try:
+                    result = json.loads(line.strip())
+                    # Extract the text response from the batch result
+                    response_text = result.get('response', {}).get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
+                    predictions.append(response_text.strip())
+                except (json.JSONDecodeError, KeyError, IndexError) as e:
+                    print(f"Warning: Could not parse batch result line: {line}. Error: {e}")
+                    predictions.append("")  # Add empty prediction for failed parsing
+        
+        # Verify we have matching numbers of predictions and metadata
+        if len(predictions) != len(metadata):
+            raise ValueError(f"Mismatch: {len(predictions)} predictions vs {len(metadata)} metadata entries")
+        
+        # Extract ground truth and other info from metadata
+        targets = [item["ground_truth"] for item in metadata]
+        
+        # If we have question type info in the original data, extract it for per-type metrics
+        question_types = []
+        if self.data:
+            for example in self.data:
+                question_types.append(example.get("question_type", "unknown"))
+        else:
+            question_types = ["unknown"] * len(targets)
+        
+        # Compute metrics using the existing compute_metrics method
+        metrics = self.compute_metrics(predictions, targets, question_types[:len(predictions)])
+        
+        # Create detailed results
+        results = {
+            "metadata": {
+                "model_name": "gemini-batch",
+                "timestamp": datetime.now().isoformat(),
+                "dataset": "ERQA",
+                "total_examples": len(predictions),
+                "batch_processing": True
+            },
+            "metrics": metrics,
+            "summary": {
+                "total_predictions": len(predictions),
+                "processing_mode": "batch"
+            }
+        }
+        
+        # Save detailed results
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output_file = os.path.join(self.output_dir, f"erqa_batch_results_{timestamp}.json")
+        os.makedirs(self.output_dir, exist_ok=True)
+        
+        with open(output_file, 'w') as f:
+            json.dump(results, f, indent=2)
+        
+        print(f"Batch evaluation results saved to {output_file}")
+        print(f"Metrics: {metrics}")
+        
+        return metrics
