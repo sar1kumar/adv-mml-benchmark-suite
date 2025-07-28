@@ -57,7 +57,6 @@ wandb/
 
 # Dataset files
 *.csv
-*.json
 *.jsonl
 *.tsv
 *.txt
@@ -69,7 +68,6 @@ datasets/
 
 # Logs and results
 logs/
-results/
 *.log
 tensorboard/
 runs/
@@ -105,10 +103,11 @@ coverage.xml
 adversarial_examples/
 perturbed_data/
 model_outputs/
+analysis/
 benchmark_results/
+batch_inputs/
+examples/
+results/
 
 # Data
 data/
-
-# Results
-results/
