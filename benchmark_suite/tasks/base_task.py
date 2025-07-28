@@ -30,3 +30,40 @@ class BaseTask(ABC):
                 results[metric_name] = sum(p.strip() == t.strip() for p, t in zip(predictions, targets)) / len(targets)
             # Add other metric computations as needed
         return results 
+        
+    def supports_batch_processing(self) -> bool:
+        """Override in child class to enable batch processing."""
+        return False
+
+    @abstractmethod
+    def get_image_paths(self) -> List[str]:
+        """Return a list of all unique local image paths required for the task."""
+        pass
+
+    @abstractmethod
+    def prepare_batch_data(self) -> List[Dict[str, Any]]:
+        """
+        Load and structure the entire dataset for batch processing.
+        Should return a list of dictionaries, each representing one example.
+        """
+        pass
+
+    @abstractmethod
+    def format_batch_request(self, example: Dict[str, Any], gcs_image_prefix: str) -> Dict[str, Any]:
+        """
+        Formats a single example from prepare_batch_data into a JSON request
+        for the Vertex AI batch prediction API.
+        """
+        pass
+
+    @abstractmethod
+    def evaluate_batch_results(self, batch_results_path: str, metadata_path: str) -> Dict[str, Any]:
+        """
+        Processes the results from a completed batch job and computes metrics.
+        Args:
+            batch_results_path: Local path to the downloaded JSONL results from the batch job.
+            metadata_path: Local path to the metadata file generated during input creation.
+        Returns:
+            A dictionary of computed metrics.
+        """
+        pass
