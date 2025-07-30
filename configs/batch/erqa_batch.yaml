@@ -1,17 +1,20 @@
 models:
-  gemini-2.5-flash-batch:
+  gemini-2.0-flash-lite-batch:
     type: "api"
     mode: "batch"
-    model_name: "gemini-2.5-flash-001"
-    api_key: "${GEMINI_API_KEY}"
-    project_id: "your-gcp-project-id" # <-- IMPORTANT: CHANGE THIS
+    model_name: "gemini-2.0-flash-lite-001"
+    project_id: "your-project-id" # <-- IMPORTANT: CHANGE THIS
     location: "us-central1"
+    max_tokens: 8192
+    temperature: 1.0
+    top_k: 64
+    top_p: 0.95
 
     batch_config:
-      gcs_bucket: "gs://your-benchmark-suite-bucket" # <-- IMPORTANT: CHANGE THIS
-      upload_images: true 
-      gcs_image_prefix: "gs://your-benchmark-suite-bucket/erqa/images"
-      output_prefix: "gs://your-benchmark-suite-bucket/erqa/batch_outputs"
+      gcs_bucket: "gs://your-bucket-name" # <-- IMPORTANT: CHANGE THIS
+      upload_images: false 
+      gcs_image_prefix: "gs://your-bucket-name/erqa/images" # <--- Not required if already uploaded
+      output_prefix: "gs://your-bucket-name/batch_output/erqa/gemini_2_0_flash_lite"
       wait_for_completion: true
       poll_interval: 60
 
