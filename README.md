@@ -77,7 +77,7 @@ pip install -r requirements.txt
 curl -fsSL https://ollama.ai/install.sh | sh
 
 # Pull the model
-ollama pull gemma2:27b
+ollama pull gemma3:27b
 ```
 
 **For Gemini (Realtime)**:
