@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Union
 import numpy as np
+from PIL import Image
+from sentence_transformers import SentenceTransformer
+
 
 class BaseAdversarialGenerator(ABC):
     """Base class for generating adversarial examples"""
@@ -33,7 +36,6 @@ class BaseAdversarialGenerator(ABC):
         """Validate that perturbation meets constraints"""
         if modality == "text":
             # Check semantic similarity
-            from sentence_transformers import SentenceTransformer
             model = SentenceTransformer('all-MiniLM-L6-v2')
             
             orig_emb = model.encode(original)
@@ -46,8 +48,6 @@ class BaseAdversarialGenerator(ABC):
             
         elif modality == "image":
             # Check L-inf norm of pixel-wise difference
-            from PIL import Image
-            import numpy as np
             
             orig_img = np.array(Image.open(original))
             pert_img = np.array(Image.open(perturbed))
