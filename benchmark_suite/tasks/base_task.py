@@ -6,6 +6,7 @@ class BaseTask(ABC):
     def __init__(self, config: Dict[str, Any]):
         self.config = config
         self.metrics = config.get("metrics", ["accuracy"])
+        self._image_path_mapping = {}  # For adversarial image mapping
         
     @abstractmethod
     def load_data(self) -> None:
@@ -67,3 +68,11 @@ class BaseTask(ABC):
             A dictionary of computed metrics.
         """
         pass
+    
+    def _update_image_paths(self, adversarial_mapping: Dict[str, str]) -> None:
+        """Update task to use adversarial images instead of original ones"""
+        self._image_path_mapping = adversarial_mapping
+    
+    def _get_effective_image_path(self, original_path: str) -> str:
+        """Get the effective image path (adversarial if available, original otherwise)"""
+        return self._image_path_mapping.get(original_path, original_path)
