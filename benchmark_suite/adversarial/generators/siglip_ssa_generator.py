@@ -512,30 +512,50 @@ class SigLIPEmbeddingGenerator(BaseAdversarialGenerator):
                 return perturbed
         return text
     
-    def generate_image_perturbation(self, image_path: str) -> str:
+    def generate_image_perturbation(self, image_path: str, output_path: str = None) -> str:
         """Generate adversarial image using SigLIP embedding attack"""
-        # Load and preprocess image
-        image = self._load_and_preprocess_image(image_path)
-        
-        # Create target image if in attraction mode
-        target_embedding = None
-        if self.attack_mode == "attraction":
-            target_embedding = self._create_target_embedding()
-        
-        # Perform SSA attack
-        adversarial_image = self._siglip_embedding_attack(image, target_embedding)
-        
-        # Save perturbed image
-        output_path = os.path.join(
-            os.path.dirname(image_path),
-            f"siglip_adversarial_{os.path.basename(image_path)}"
-        )
-        
-        self._save_tensor_image(adversarial_image, output_path)
-        
-        if self._validate_perturbation(image_path, output_path, "image"):
-            return output_path
-        return image_path
+        try:
+            # Check if file exists
+            if not os.path.exists(image_path):
+                raise FileNotFoundError(f"Image file not found: {image_path}")
+            
+            print(f"Processing image: {image_path}")
+            
+            # Load and preprocess image
+            image = self._load_and_preprocess_image(image_path)
+            
+            # Create target image if in attraction mode
+            target_embedding = None
+            if self.attack_mode == "attraction":
+                print("Creating target embedding...")
+                target_embedding = self._create_target_embedding()
+            
+            # Perform SSA attack
+            print("Starting SSA attack...")
+            adversarial_image = self._siglip_embedding_attack(image, target_embedding)
+            
+            # Determine output path
+            if output_path is None:
+                output_path = os.path.join(
+                    os.path.dirname(image_path),
+                    f"siglip_adversarial_{os.path.basename(image_path)}"
+                )
+            
+            print(f"Saving adversarial image to: {output_path}")
+            
+            # Ensure output directory exists
+            os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
+            
+            # Save adversarial image
+            self._save_tensor_image(adversarial_image, output_path)
+            
+            if self._validate_perturbation(image_path, output_path, "image"):
+                return output_path
+            return image_path
+            
+        except Exception as e:
+            print(f"Error generating image perturbation: {e}")
+            return image_path
     
     def _load_and_preprocess_image(self, image_path: str) -> torch.Tensor:
         """Load and preprocess image for attack"""
