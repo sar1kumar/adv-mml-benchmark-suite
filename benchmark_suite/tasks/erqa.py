@@ -253,6 +253,12 @@ class ERQATask(BaseTask):
             **metrics
         }
 
+    # --- Adversarial Support Methods ---
+    
+    def _get_effective_image_path(self, original_path: str) -> str:
+        """Get the effective image path (adversarial if available, original otherwise)"""
+        return self._image_path_mapping.get(original_path, original_path)
+
     # --- Batch Processing Methods ---
 
     def supports_batch_processing(self) -> bool:
@@ -277,25 +283,33 @@ class ERQATask(BaseTask):
         return list(all_image_paths)
 
     def prepare_batch_data(self) -> List[Dict[str, Any]]:
-        """Load and structure the ERQA dataset for batch processing."""
+        """Load and structure the ERQA dataset for batch processing with adversarial support."""
         if not self.data:
             self.load_data()
         
         batch_data = []
         for idx, example in enumerate(self.data):
             # Ensure image_paths is a list
-            image_paths = example.get("image_paths", [])
-            if not isinstance(image_paths, list):
-                image_paths = [image_paths]
+            original_image_paths = example.get("image_paths", [])
+            if not isinstance(original_image_paths, list):
+                original_image_paths = [original_image_paths]
+            
+            # Apply adversarial mapping to each image path
+            effective_image_paths = []
+            for img_path in original_image_paths:
+                effective_path = self._get_effective_image_path(img_path)
+                effective_image_paths.append(effective_path)
             
             batch_example = {
                 "example_id": f"erqa_{idx}",
                 "question_type": example.get("question_type"),
                 "question": example.get("question"),
                 "visual_indices": example.get("visual_indices", []),
-                "image_paths": image_paths,
+                "image_paths": effective_image_paths,  # Use adversarial paths
+                "original_image_paths": original_image_paths,  # Keep originals for reference
                 "ground_truth": example.get("answer"),
-                "prompt": self.format_prompt(example)
+                "prompt": self.format_prompt(example),
+                "adversarial_applied": effective_image_paths != original_image_paths
             }
             batch_data.append(batch_example)
         
@@ -326,19 +340,17 @@ class ERQATask(BaseTask):
             })
         
         return {
-            "request": {
-                "contents": [
-                    {
-                        "role": "user",
-                        "parts": parts
-                    }
-                ],
-                "generationConfig": {
-                    "temperature": 1.0,
-                    "maxOutputTokens": 8192,
-                    "top_p": 0.95,
-                    "top_k": 64
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": parts
                 }
+            ],
+            "generationConfig": {
+                "temperature": 1.0,
+                "maxOutputTokens": 8192,
+                "top_p": 0.95,
+                "top_k": 64
             }
         }
 
