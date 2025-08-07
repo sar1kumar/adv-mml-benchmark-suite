@@ -9,11 +9,12 @@ import wandb
 from benchmark_suite.core.config_parser import ConfigParser
 from benchmark_suite.core.model_manager import ModelManager
 from benchmark_suite.core.task_manager import TaskManager
+from benchmark_suite.core.adversarial_manager import AdversarialManager
 from benchmark_suite.models.base_model import BaseModel
 from benchmark_suite.tasks.base_task import BaseTask
 
 class Orchestrator:
-    """Coordinates benchmark evaluation across models and tasks"""
+    """Coordinates benchmark evaluation across models and tasks with adversarial support"""
     
     def __init__(self, config_path: str):
         self.config = ConfigParser.load_and_validate(config_path)
@@ -21,6 +22,9 @@ class Orchestrator:
         self.tasks = {}
         self.results = {}
         self.logger = self._setup_logging()
+        
+        # Initialize adversarial manager
+        self.adversarial_manager = AdversarialManager(self.config)
         
     def _setup_logging(self) -> logging.Logger:
         """Set up logging configuration"""
@@ -57,11 +61,17 @@ class Orchestrator:
             
     def _evaluate_task(self, model_name: str, model: BaseModel, 
                       task_name: str, task: BaseTask) -> Dict[str, Any]:
-        """Evaluate a single model on a single task"""
+        """Evaluate a single model on a single task with adversarial support"""
         try:
             self.logger.info(f"Starting evaluation of {model_name} on {task_name}")
             start_time = time.time()
             
+            # Check if task has adversarial attacks enabled
+            if self.adversarial_manager.has_adversarial_task(task_name):
+                self.logger.info(f"Adversarial attacks enabled for task {task_name}")
+                results = self._evaluate_task_with_adversarial(model, task_name, task)
+            else:
+                self.logger.info(f"Standard evaluation for task {task_name}")
             results = task.evaluate(model)
             
             elapsed_time = time.time() - start_time
@@ -80,6 +90,17 @@ class Orchestrator:
         except Exception as e:
             self.logger.error(f"Error evaluating {model_name} on {task_name}: {str(e)}")
             return {"error": str(e)}
+    
+    def _evaluate_task_with_adversarial(self, model: BaseModel, task_name: str, 
+                                      task: BaseTask) -> Dict[str, Any]:
+        """Evaluate task with adversarial attacks"""
+        # Create adversarial version of the task
+        adversarial_task = AdversarialTask(task, self.adversarial_manager, task_name)
+        
+        # Run evaluation on adversarial task
+        results = adversarial_task.evaluate(model)
+        
+        return results
             
     def run_evaluations(self, parallel: bool = False) -> Dict[str, Any]:
         """Run all evaluations specified in the config"""
@@ -160,3 +181,59 @@ class Orchestrator:
             summary[model_name] = model_summary
             
         return summary 
+
+
+class AdversarialTask:
+    """Wrapper for tasks to handle adversarial attacks"""
+    
+    def __init__(self, base_task: BaseTask, adversarial_manager: AdversarialManager, task_name: str):
+        self.base_task = base_task
+        self.adversarial_manager = adversarial_manager
+        self.task_name = task_name
+        self.logger = logging.getLogger("benchmark_suite.adversarial_task")
+    
+    def evaluate(self, model: BaseModel) -> Dict[str, Any]:
+        """Evaluate with adversarial attacks"""
+        # Load original data
+        self.base_task.load_data()
+        
+        # Get image paths from the task
+        try:
+            original_image_paths = self.base_task.get_image_paths()
+            self.logger.info(f"Found {len(original_image_paths)} images for adversarial processing")
+        except Exception as e:
+            self.logger.warning(f"Could not get image paths from task: {e}")
+            original_image_paths = []
+        
+        # Generate adversarial images
+        adversarial_image_mapping = {}
+        if original_image_paths:
+            adversarial_image_mapping = self.adversarial_manager.generate_adversarial_images(
+                self.task_name, original_image_paths
+            )
+        
+        # Update task to use adversarial images
+        if hasattr(self.base_task, '_update_image_paths'):
+            self.base_task._update_image_paths(adversarial_image_mapping)
+        
+        # Run evaluation with adversarial data
+        results = self.base_task.evaluate(model)
+        
+        # Add adversarial metadata to results
+        results["adversarial"] = {
+            "enabled": True,
+            "original_images": len(original_image_paths),
+            "adversarial_images": len([p for p in adversarial_image_mapping.values() 
+                                     if p != list(adversarial_image_mapping.keys())[0]]),
+            "attack_success_rate": self._compute_attack_success_rate(adversarial_image_mapping)
+        }
+        
+        return results
+    
+    def _compute_attack_success_rate(self, adversarial_mapping: Dict[str, str]) -> float:
+        """Compute the success rate of adversarial attacks"""
+        if not adversarial_mapping:
+            return 0.0
+        
+        successful_attacks = sum(1 for orig, adv in adversarial_mapping.items() if orig != adv)
+        return successful_attacks / len(adversarial_mapping) 
