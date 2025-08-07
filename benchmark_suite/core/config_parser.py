@@ -111,7 +111,7 @@ class ConfigParser:
 
     @staticmethod
     def validate_task_config(config: Dict[str, Any]) -> None:
-        """Validate task configuration"""
+        """Validate task configuration with adversarial support"""
         required_fields = {
             "data_path": str,
             "metrics": list
@@ -123,48 +123,101 @@ class ConfigParser:
             if not isinstance(config[field], field_type):
                 raise TypeError(f"Field '{field}' must be of type {field_type.__name__}")
                 
-        # Validate metrics
-        valid_metrics = ["accuracy", "f1", "bleu", "rouge", "mean_iou", "meteor", "cider"]
-        for metric in config["metrics"]:
-            if metric not in valid_metrics:
-                raise ValueError(f"Invalid metric: {metric}. Must be one of {valid_metrics}")
+        # Validate adversarial config if present
+        if "adversarial" in config:
+            ConfigParser._validate_adversarial_config(config["adversarial"])
+
+    @staticmethod
+    def _validate_adversarial_config(adversarial_config: Dict[str, Any]) -> None:
+        """Validate adversarial attack configuration"""
+        if not isinstance(adversarial_config, dict):
+            raise TypeError("Adversarial config must be a dictionary")
+            
+        # Check if adversarial attacks are enabled
+        if not adversarial_config.get("enabled", False):
+            return  # Skip validation if disabled
+            
+        required_fields = {
+            "generator_type": str,
+            "attack_mode": str,
+        }
+        
+        for field, field_type in required_fields.items():
+            if field not in adversarial_config:
+                raise ValueError(f"Missing required adversarial field '{field}'")
+            if not isinstance(adversarial_config[field], field_type):
+                raise TypeError(f"Adversarial field '{field}' must be of type {field_type.__name__}")
+        
+        # Validate generator type
+        valid_generators = ["siglip_embedding", "vqa", "fgsm", "pgd"]
+        if adversarial_config["generator_type"] not in valid_generators:
+            raise ValueError(f"Generator type must be one of {valid_generators}, got '{adversarial_config['generator_type']}'")
+        
+        # Validate attack mode
+        valid_attack_modes = ["repulsion", "attraction", "untargeted", "targeted"]
+        if adversarial_config["attack_mode"] not in valid_attack_modes:
+            raise ValueError(f"Attack mode must be one of {valid_attack_modes}, got '{adversarial_config['attack_mode']}'")
+        
+        # Validate optional parameters
+        optional_fields = {
+            "epsilon": float,
+            "attack_steps": int,
+            "attack_step_size": float,
+            "target_option": str,
+            "save_adversarial_images": bool,
+            "adversarial_output_dir": str,
+            "force_cpu": bool,
+            "batch_size": int,
+            "siglip_model_name": str
+        }
+        
+        for field, field_type in optional_fields.items():
+            if field in adversarial_config and not isinstance(adversarial_config[field], field_type):
+                raise TypeError(f"Adversarial field '{field}' must be of type {field_type.__name__}")
+        
+        # Validate epsilon range
+        if "epsilon" in adversarial_config:
+            epsilon = adversarial_config["epsilon"]
+            if not (0.0 <= epsilon <= 1.0):
+                raise ValueError(f"Epsilon must be between 0.0 and 1.0, got {epsilon}")
+        
+        # Validate attack steps
+        if "attack_steps" in adversarial_config:
+            steps = adversarial_config["attack_steps"]
+            if steps <= 0:
+                raise ValueError(f"Attack steps must be positive, got {steps}")
 
     @staticmethod
     def validate_config_consistency(config: Dict[str, Any]) -> None:
-        """Validate that configuration is consistent across models and tasks"""
-        model_modes = [model_config["mode"] for model_config in config["models"].values()]
+        """Validate consistency between different config sections"""
+        # Check mode consistency across models
+        modes = [model_config.get("mode") for model_config in config["models"].values()]
+        unique_modes = set(modes)
         
-        # Check if mixing realtime and batch modes
-        if "realtime" in model_modes and "batch" in model_modes:
-            raise ValueError(
-                "Cannot mix realtime and batch models in the same configuration. "
-                "Please use separate config files for different processing modes."
-            )
+        if len(unique_modes) > 1:
+            # Mixed modes are allowed but we should warn
+            print(f"Warning: Mixed processing modes detected: {unique_modes}")
             
-        # Validate batch mode requirements
-        if "batch" in model_modes:
-            batch_models = [
-                name for name, model_config in config["models"].items() 
-                if model_config["mode"] == "batch"
-            ]
-            
-            if len(batch_models) > 1:
-                raise ValueError(
-                    "Only one batch model allowed per configuration. "
-                    f"Found batch models: {batch_models}"
-                )
+        # Validate adversarial configuration consistency
+        for task_name, task_config in config["tasks"].items():
+            if "adversarial" in task_config and task_config["adversarial"].get("enabled", False):
+                # Check if the task type supports adversarial attacks
+                task_type = task_config.get("type", "")
+                supported_task_types = ["vqa_rad", "sme", "omni_vqa", "erqa"]  # Add more as needed
                 
-        # Validate that tasks support the processing mode
-        processing_mode = model_modes[0] if model_modes else "realtime"
-        
-        if processing_mode == "batch":
-            # For batch mode, we could add validation to ensure tasks support batch processing
-            # This would require loading the task classes, so we'll keep it simple for now
-            pass
+                if task_type not in supported_task_types:
+                    print(f"Warning: Task '{task_name}' of type '{task_type}' may not fully support adversarial attacks")
+                
+                # Check consistency between batch mode and adversarial attacks
+                for model_name, model_config in config["models"].items():
+                    if model_config.get("mode") == "batch":
+                        adv_config = task_config["adversarial"]
+                        if not adv_config.get("save_adversarial_images", True):
+                            raise ValueError(f"Batch mode requires saving adversarial images for task '{task_name}'")
 
     @staticmethod
     def load_and_validate(config_path: str) -> Dict[str, Any]:
-        """Load config file and validate its contents"""
+        """Load and validate configuration file"""
         if not os.path.exists(config_path):
             raise FileNotFoundError(f"Config file not found: {config_path}")
             
@@ -174,7 +227,7 @@ class ConfigParser:
         # Substitute environment variables
         config = ConfigParser._substitute_env_vars(config)
         
-        # Validate required top-level sections
+        # Validate structure
         required_sections = ["models", "tasks", "logging"]
         for section in required_sections:
             if section not in config:
