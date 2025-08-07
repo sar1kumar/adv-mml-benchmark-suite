@@ -68,14 +68,27 @@ class VQARADTask(BaseTask):
         prompt += "Answer: "
         return prompt
         
-    def compute_metrics(self, predictions: List[str], targets: List[str], 
-                       question_types: List[str], answer_types: List[str]) -> Dict[str, float]:
+        
+    def compute_metrics(self, predictions_data: List[Dict[str, Any]]) -> Dict[str, float]:
         """Compute metrics with breakdown by question and answer types"""
+        if not predictions_data:
+            metrics = {'accuracy': 0.0}
+            for q_type in self.question_types:
+                metrics[f'{q_type.lower()}_accuracy'] = 0.0
+            for a_type in self.answer_types:
+                metrics[f'{a_type.lower()}_accuracy'] = 0.0
+            return metrics
+
         metrics = {}
+
+        predictions = [str(item.get("model_prediction", {}).get("response", "")).strip() for item in predictions_data]
+        targets = [str(item["ground_truth"]).strip() for item in predictions_data]
+        question_types = [item["question_type"] for item in predictions_data]
+        answer_types = [item["answer_type"] for item in predictions_data]
         
         # Overall accuracy
-        correct = sum(p.strip() == t.strip() for p, t in zip(predictions, targets))
-        metrics['accuracy'] = correct / len(predictions)
+        correct = sum(p == t for p, t in zip(predictions, targets))
+        metrics['accuracy'] = correct / len(predictions) if predictions else 0.0
         
         # Per question type accuracy
         for q_type in self.question_types:
@@ -83,8 +96,10 @@ class VQARADTask(BaseTask):
             if q_type_indices:
                 q_type_preds = [predictions[i] for i in q_type_indices]
                 q_type_targets = [targets[i] for i in q_type_indices]
-                correct = sum(p.strip() == t.strip() for p, t in zip(q_type_preds, q_type_targets))
+                correct = sum(p == t for p, t in zip(q_type_preds, q_type_targets))
                 metrics[f'{q_type.lower()}_accuracy'] = correct / len(q_type_indices)
+            else:
+                metrics[f'{q_type.lower()}_accuracy'] = 0.0
         
         # Per answer type accuracy
         for a_type in self.answer_types:
@@ -92,12 +107,14 @@ class VQARADTask(BaseTask):
             if a_type_indices:
                 a_type_preds = [predictions[i] for i in a_type_indices]
                 a_type_targets = [targets[i] for i in a_type_indices]
-                correct = sum(p.strip() == t.strip() for p, t in zip(a_type_preds, a_type_targets))
+                correct = sum(p == t for p, t in zip(a_type_preds, a_type_targets))
                 metrics[f'{a_type.lower()}_accuracy'] = correct / len(a_type_indices)
+            else:
+                metrics[f'{a_type.lower()}_accuracy'] = 0.0
         
         return metrics
         
-    def evaluate(self, model: BaseModel) -> Dict[str, float]:
+    def evaluate(self, model: BaseModel) -> Dict[str, Any]:
         """Generate predictions for VQA-RAD task and store in JSON file"""
         if not self.data:
             self.load_data()
@@ -151,6 +168,9 @@ class VQARADTask(BaseTask):
                 }
                 results["predictions"].append(result_entry)
         
+        # Compute metrics
+        metrics = self.compute_metrics(results["predictions"])
+        results["metrics"] = metrics
         # Save results to JSON file
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_file = os.path.join(self.output_dir, f"vqa_rad_predictions_{timestamp}.json")
@@ -163,6 +183,7 @@ class VQARADTask(BaseTask):
         # Return basic stats
         return {
             "total_predictions": len(results["predictions"]),
-            "output_file": output_file
+            "output_file": output_file,
             #TODO: Add evalution metrics here (accuracy, Bleu score, etc.) computed from the predictions and ground truths.
+            "metrics": metrics
         }
