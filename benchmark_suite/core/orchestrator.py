@@ -199,7 +199,7 @@ class AdversarialTask:
         
         # Get image paths from the task
         try:
-            original_image_paths = self.base_task.get_image_paths()
+            original_image_paths = self.base_task.get_image_paths()  # This returns a list of paths
             self.logger.info(f"Found {len(original_image_paths)} images for adversarial processing")
         except Exception as e:
             self.logger.warning(f"Could not get image paths from task: {e}")
