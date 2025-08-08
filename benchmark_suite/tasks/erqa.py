@@ -3,11 +3,8 @@ import json
 import random
 from typing import Dict, List, Any
 from datetime import datetime
-from pathlib import Path
+
 import pandas as pd
-import numpy as np
-from PIL import Image
-import io
 from benchmark_suite.tasks.base_task import BaseTask
 from benchmark_suite.models.base_model import BaseModel
 from benchmark_suite.metrics import BLEU, METEOR, ROUGEL, CIDEr, Accuracy
@@ -17,7 +14,10 @@ class ERQATask(BaseTask):
         super().__init__(config)
         self.data_path = config["data_path"]  # Path to erqa.parquet
         self.split = config.get("split", ["test"])
+        # Get output directory from config, with fallback to default
         self.output_dir = config.get("output_dir", "results")
+        if isinstance(self.output_dir, str):
+            self.output_dir = os.path.join(self.output_dir, "erqa")  # Add task-specific subfolder
         self.sample_size = config.get("sample_size", None)
         self.random_seed = config.get("random_seed", 42)
         self.metrics_config = config.get("metrics", ["accuracy", "bleu", "rouge"])
@@ -253,12 +253,6 @@ class ERQATask(BaseTask):
             **metrics
         }
 
-    # --- Adversarial Support Methods ---
-    
-    def _get_effective_image_path(self, original_path: str) -> str:
-        """Get the effective image path (adversarial if available, original otherwise)"""
-        return self._image_path_mapping.get(original_path, original_path)
-
     # --- Batch Processing Methods ---
 
     def supports_batch_processing(self) -> bool:
@@ -271,45 +265,46 @@ class ERQATask(BaseTask):
             self.load_data()
         
         all_image_paths = set()
+        
+        def add_path_recursive(path):
+            if isinstance(path, str) and os.path.exists(path):
+                all_image_paths.add(path)
+            elif isinstance(path, (list, tuple)):
+                for p in path:
+                    add_path_recursive(p)
+        
         for example in self.data:
             image_paths = example.get("image_paths", [])
-            if isinstance(image_paths, list):
-                for path in image_paths:
-                    if os.path.exists(path):
-                        all_image_paths.add(path)
-            elif isinstance(image_paths, str) and os.path.exists(image_paths):
-                all_image_paths.add(image_paths)
+            add_path_recursive(image_paths)
         
         return list(all_image_paths)
 
     def prepare_batch_data(self) -> List[Dict[str, Any]]:
-        """Load and structure the ERQA dataset for batch processing with adversarial support."""
+        """Load and structure the ERQA dataset for batch processing."""
         if not self.data:
             self.load_data()
         
         batch_data = []
         for idx, example in enumerate(self.data):
             # Ensure image_paths is a list
-            original_image_paths = example.get("image_paths", [])
-            if not isinstance(original_image_paths, list):
-                original_image_paths = [original_image_paths]
+            image_paths = example.get("image_paths", [])
+            if not isinstance(image_paths, list):
+                image_paths = [image_paths]
             
-            # Apply adversarial mapping to each image path
-            effective_image_paths = []
-            for img_path in original_image_paths:
-                effective_path = self._get_effective_image_path(img_path)
-                effective_image_paths.append(effective_path)
+            # Apply adversarial mapping if available
+            if hasattr(self, '_image_path_mapping'):
+                effective_image_paths = [self._get_effective_image_path(path) for path in image_paths]
+            else:
+                effective_image_paths = image_paths
             
             batch_example = {
                 "example_id": f"erqa_{idx}",
                 "question_type": example.get("question_type"),
                 "question": example.get("question"),
                 "visual_indices": example.get("visual_indices", []),
-                "image_paths": effective_image_paths,  # Use adversarial paths
-                "original_image_paths": original_image_paths,  # Keep originals for reference
+                "image_paths": effective_image_paths,
                 "ground_truth": example.get("answer"),
-                "prompt": self.format_prompt(example),
-                "adversarial_applied": effective_image_paths != original_image_paths
+                "prompt": self.format_prompt(example)
             }
             batch_data.append(batch_example)
         
@@ -340,17 +335,19 @@ class ERQATask(BaseTask):
             })
         
         return {
-            "contents": [
-                {
-                    "role": "user",
-                    "parts": parts
+            "request": {
+                "contents": [
+                    {
+                        "role": "user",
+                        "parts": parts
+                    }
+                ],
+                "generationConfig": {
+                    "temperature": 1.0,
+                    "maxOutputTokens": 8192,
+                    "top_p": 0.95,
+                    "top_k": 64
                 }
-            ],
-            "generationConfig": {
-                "temperature": 1.0,
-                "maxOutputTokens": 8192,
-                "top_p": 0.95,
-                "top_k": 64
             }
         }
 
