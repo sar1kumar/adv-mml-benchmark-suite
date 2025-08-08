@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any
 from ..models.base_model import BaseModel
+import os
 
 class BaseTask(ABC):
     def __init__(self, config: Dict[str, Any]):
@@ -75,4 +76,18 @@ class BaseTask(ABC):
     
     def _get_effective_image_path(self, original_path: str) -> str:
         """Get the effective image path (adversarial if available, original otherwise)"""
-        return self._image_path_mapping.get(original_path, original_path)
+        if hasattr(self, '_image_path_mapping') and self._image_path_mapping:
+            # For adversarial tasks, map to adversarial directory
+            if hasattr(self, 'config') and 'adversarial' in self.config:
+                adv_dir = self.config['adversarial'].get('adversarial_output_dir')
+                if adv_dir:
+                    # Create adversarial filename
+                    original_filename = os.path.basename(original_path)
+                    name, ext = os.path.splitext(original_filename)
+                    task_name = self.__class__.__name__.lower().replace('task', '')
+                    adv_filename = f"adv_{name}_{task_name}{ext}"
+                    adv_path = os.path.join(adv_dir, adv_filename)
+                    if os.path.exists(adv_path):
+                        return adv_path
+        
+        return original_path
