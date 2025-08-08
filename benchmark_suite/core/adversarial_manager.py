@@ -68,106 +68,73 @@ class AdversarialManager:
         return task_name in self.generators
     
     def generate_adversarial_images(self, task_name: str, image_paths: List[str], 
-                                  output_dir: str = None) -> Dict[str, str]:
-        """
-        Generate adversarial images for a task
-        
-        Args:
-            task_name: Name of the task
-            image_paths: List of original image paths
-            output_dir: Directory to save adversarial images
-            
-        Returns:
-            Dictionary mapping original image paths to adversarial image paths
-        """
+                             output_dir: str = None) -> Dict[str, str]:
+        """Generate adversarial images for a task"""
         if task_name not in self.generators:
             self.logger.warning(f"No adversarial generator found for task {task_name}")
-            return {path: path for path in image_paths}  # Return original paths
+            return {path: path for path in image_paths if isinstance(path, str)}
         
         generator = self.generators[task_name]
         task_config = self.config["tasks"][task_name]
         adv_config = task_config["adversarial"]
         
-        # Set up output directory
-        if output_dir is None:
-            output_dir = adv_config.get("adversarial_output_dir", f"adversarial_{task_name}")
+        # Use provided output_dir or get from config
+        output_dir = adv_config.get("adversarial_output_dir", f"adversarial_{task_name}")
         
-        # Always create the output directory
+        # Create the output directory
         os.makedirs(output_dir, exist_ok=True)
         self.logger.info(f"Adversarial images will be saved to: {output_dir}")
         
         adversarial_mapping = {}
         
-        self.logger.info(f"Generating adversarial images for {len(image_paths)} images in task {task_name}")
+        # Flatten paths
+        flat_paths = []
+        for path in image_paths:
+            if isinstance(path, str):
+                flat_paths.append(path)
+            elif isinstance(path, list):
+                flat_paths.extend([p for p in path if isinstance(p, str)])
         
-        for i, image_path in enumerate(image_paths):
+        self.logger.info(f"Generating adversarial images for {len(flat_paths)} images in task {task_name}")
+        
+        for i, image_path in enumerate(flat_paths):
             if not os.path.exists(image_path):
                 self.logger.warning(f"Image not found: {image_path}")
                 adversarial_mapping[image_path] = image_path
                 continue
             
             try:
-                self.logger.info(f"Processing image {i+1}/{len(image_paths)}: {os.path.basename(image_path)}")
+                self.logger.info(f"Processing image {i+1}/{len(flat_paths)}: {os.path.basename(image_path)}")
                 
-                # Generate adversarial image (this creates a file somewhere)
-                temp_adversarial_path = generator.generate_image_perturbation(image_path)
+                # Create output path for this specific image
+                original_filename = os.path.basename(image_path)
+                name, ext = os.path.splitext(original_filename)
+                final_adversarial_filename = f"adv_{name}_{task_name}{ext}"
+                final_adversarial_path = os.path.join(output_dir, final_adversarial_filename)
                 
-                # Check if adversarial image was actually generated
+                # Generate adversarial image with explicit output path
+                temp_adversarial_path = generator.generate_image_perturbation(image_path, final_adversarial_path)
+                
                 if temp_adversarial_path == image_path:
-                    # No adversarial image was generated (attack failed or validation failed)
-                    self.logger.warning(f"No adversarial image generated for {image_path}")
+                    # Attack failed, use original
                     adversarial_mapping[image_path] = image_path
                     continue
                 
-                # Ensure we save to the proper output directory
-                if adv_config.get("save_adversarial_images", True):
-                    # Create a proper filename for the adversarial image
-                    original_filename = os.path.basename(image_path)
-                    name, ext = os.path.splitext(original_filename)
-                    final_adversarial_filename = f"adv_{name}_{task_name}{ext}"
-                    final_adversarial_path = os.path.join(output_dir, final_adversarial_filename)
-                    
-                    # Copy or move the adversarial image to the final location
-                    if temp_adversarial_path != final_adversarial_path:
-                        if os.path.exists(temp_adversarial_path):
-                            # Copy the file to ensure we don't lose it
-                            shutil.copy2(temp_adversarial_path, final_adversarial_path)
-                            self.logger.debug(f"Copied adversarial image from {temp_adversarial_path} to {final_adversarial_path}")
-                            
-                            # Remove the temporary file if it's not the original
-                            if temp_adversarial_path != image_path:
-                                try:
-                                    os.remove(temp_adversarial_path)
-                                    self.logger.debug(f"Removed temporary file: {temp_adversarial_path}")
-                                except Exception as e:
-                                    self.logger.warning(f"Could not remove temporary file {temp_adversarial_path}: {e}")
-                        else:
-                            self.logger.error(f"Temporary adversarial image not found: {temp_adversarial_path}")
-                            adversarial_mapping[image_path] = image_path
-                            continue
-                    else:
-                        final_adversarial_path = temp_adversarial_path
-                    
+                # If the generator saved it where we wanted, use that path
+                if os.path.exists(final_adversarial_path):
                     adversarial_mapping[image_path] = final_adversarial_path
                     self.logger.info(f"✓ Adversarial image saved: {final_adversarial_path}")
-                    
                 else:
-                    # Don't save, just return the temporary path
+                    # Fallback: generator returned a different path
                     adversarial_mapping[image_path] = temp_adversarial_path
-                
+                    self.logger.warning(f"Adversarial image saved to unexpected location: {temp_adversarial_path}")
+                    
             except Exception as e:
                 self.logger.error(f"Failed to generate adversarial image for {image_path}: {e}")
-                adversarial_mapping[image_path] = image_path  # Fallback to original
+                adversarial_mapping[image_path] = image_path
         
         successful_attacks = len([orig for orig, adv in adversarial_mapping.items() if orig != adv])
-        self.logger.info(f"Generated {successful_attacks} adversarial images out of {len(image_paths)} total images")
-        
-        # Print summary of saved files
-        if adv_config.get("save_adversarial_images", True):
-            saved_files = [adv for orig, adv in adversarial_mapping.items() if orig != adv and os.path.exists(adv)]
-            self.logger.info(f"Adversarial images saved to {output_dir}:")
-            for file_path in saved_files:
-                self.logger.info(f"  - {os.path.basename(file_path)}")
+        self.logger.info(f"Generated {successful_attacks} adversarial images out of {len(flat_paths)} total images")
         
         return adversarial_mapping
     
