@@ -351,63 +351,234 @@ class ERQATask(BaseTask):
             }
         }
 
-    def evaluate_batch_results(self, batch_results_path: str, metadata_path: str) -> Dict[str, Any]:
+    def evaluate_batch_results(self, batch_results_path: str, metadata_path: str = None) -> Dict[str, Any]:
         """Process completed batch job results and compute metrics."""
-        # Load metadata
-        with open(metadata_path, 'r') as f:
-            metadata = json.load(f)
+        if not self.data:
+            self.load_data()
+        
+        def extract_image_key(filename):
+            """Extract the key from both normal and adversarial image filenames."""
+            # Remove extension first
+            base_name = os.path.splitext(filename)[0]
+            
+            # Handle adversarial files: adv_image_69_0_erqa.jpg -> "69_0"
+            if base_name.startswith("adv_image_"):
+                # Remove "adv_image_" prefix and "_erqa" suffix
+                key_part = base_name.replace("adv_image_", "")
+                if key_part.endswith("_erqa"):
+                    key_part = key_part[:-5]  # Remove "_erqa"
+                return key_part
+            
+            # Handle normal files: image_0_0.jpg -> "0_0"
+            elif base_name.startswith("image_"):
+                return base_name.replace("image_", "")
+            
+            # Fallback: try to extract numbers from any filename
+            else:
+                import re
+                # Look for pattern like "number_number" in the filename
+                match = re.search(r'(\d+_\d+)', base_name)
+                if match:
+                    return match.group(1)
+                
+                # If no pattern found, try to extract just the first number
+                match = re.search(r'(\d+)', base_name)
+                if match:
+                    return match.group(1)
+            
+            return None
+        
+        # Create a mapping from image file names to data examples
+        image_to_example = {}
+        for idx, example in enumerate(self.data):
+            # Get the primary image path (first image)
+            image_paths = example.get("image_paths", [])
+            if not isinstance(image_paths, list):
+                image_paths = [image_paths]
+            
+            if image_paths:
+                # Extract the base filename and use it as key
+                primary_image = image_paths[0]
+                image_filename = os.path.basename(primary_image)
+                key = extract_image_key(image_filename)
+                
+                if key:
+                    image_to_example[key] = {
+                        "index": idx,
+                        "example": example,
+                        "image_key": key,
+                        "original_filename": image_filename
+                    }
+        
+        print(f"Created mapping for {len(image_to_example)} examples")
+        print(f"Sample mappings: {list(image_to_example.keys())[:5]}")
         
         # Load and parse batch results
-        predictions = []
+        predictions_data = []
         with open(batch_results_path, 'r') as f:
-            for line in f:
+            for line_num, line in enumerate(f):
                 try:
                     result = json.loads(line.strip())
                     # Extract the text response from the batch result
                     response_text = result.get('response', {}).get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
-                    predictions.append(response_text.strip())
+                    
+                    # Try to extract image key from the request if available
+                    request = result.get('request', {})
+                    image_key = None
+                    extracted_filename = None
+                    
+                    # Look for image file references in the request
+                    if 'contents' in request:
+                        for content in request['contents']:
+                            if 'parts' in content and content['parts']:
+                                for part in content['parts']:
+                                    if (part and 
+                                        'file_data' in part and 
+                                        part['file_data'] is not None and 
+                                        isinstance(part['file_data'], dict) and
+                                        'file_uri' in part['file_data']):
+                                        file_uri = part['file_data']['file_uri']
+                                        # Extract filename from file_uri
+                                        extracted_filename = os.path.basename(file_uri)
+                                        image_key = extract_image_key(extracted_filename)
+                                        if image_key:
+                                            break
+                            if image_key:
+                                break
+                    
+                    # If we couldn't extract image_key from request, use line number as fallback
+                    if not image_key:
+                        # Try to map by line number to data index
+                        if line_num < len(self.data):
+                            example = self.data[line_num]
+                            image_paths = example.get("image_paths", [])
+                            if image_paths:
+                                primary_image = image_paths[0] if isinstance(image_paths, list) else image_paths
+                                filename = os.path.basename(primary_image)
+                                image_key = extract_image_key(filename)
+                    
+                    predictions_data.append({
+                        "line_num": line_num,
+                        "image_key": image_key,
+                        "prediction": response_text.strip(),
+                        "extracted_filename": extracted_filename
+                    })
+                    
                 except (json.JSONDecodeError, KeyError, IndexError) as e:
-                    print(f"Warning: Could not parse batch result line: {line}. Error: {e}")
-                    predictions.append("")  # Add empty prediction for failed parsing
+                    print(f"Warning: Could not parse batch result line {line_num}: {line}. Error: {e}")
+                    predictions_data.append({
+                        "line_num": line_num,
+                        "image_key": None,
+                        "prediction": "",
+                        "extracted_filename": None
+                    })
         
-        # Verify we have matching numbers of predictions and metadata
-        if len(predictions) != len(metadata):
-            raise ValueError(f"Mismatch: {len(predictions)} predictions vs {len(metadata)} metadata entries")
+        print(f"Parsed {len(predictions_data)} batch results")
+        print(f"Sample extracted keys: {[p['image_key'] for p in predictions_data[:5]]}")
         
-        # Extract ground truth and other info from metadata
-        targets = [item["ground_truth"] for item in metadata]
+        # Map predictions to examples and collect data for metrics
+        all_predictions = []
+        all_targets = []
+        all_question_types = []
+        results_details = []
+        matched_count = 0
+        unmatched_keys = []
         
-        # If we have question type info in the original data, extract it for per-type metrics
-        question_types = []
-        if self.data:
-            for example in self.data:
-                question_types.append(example.get("question_type", "unknown"))
-        else:
-            question_types = ["unknown"] * len(targets)
+        for pred_data in predictions_data:
+            image_key = pred_data["image_key"]
+            prediction = pred_data["prediction"]
+            line_num = pred_data["line_num"]
+            extracted_filename = pred_data["extracted_filename"]
+            
+            # Try to find matching example
+            example_data = None
+            match_method = "none"
+            
+            if image_key and image_key in image_to_example:
+                example_data = image_to_example[image_key]
+                match_method = "image_key"
+                matched_count += 1
+            elif line_num < len(self.data):
+                # Fallback: use line number to match
+                example_data = {
+                    "index": line_num,
+                    "example": self.data[line_num],
+                    "image_key": f"line_{line_num}",
+                    "original_filename": "fallback"
+                }
+                match_method = "line_number"
+                matched_count += 1
+            else:
+                unmatched_keys.append({
+                    "line_num": line_num,
+                    "image_key": image_key,
+                    "extracted_filename": extracted_filename
+                })
+            
+            if example_data:
+                example = example_data["example"]
+                
+                all_predictions.append(prediction)
+                all_targets.append(example["answer"])
+                all_question_types.append(example["question_type"])
+                
+                # Store detailed results (similar to evaluate method)
+                result_entry = {
+                    "line_num": line_num,
+                    "image_key": example_data["image_key"],
+                    "extracted_filename": extracted_filename,
+                    "original_filename": example_data.get("original_filename"),
+                    "question_type": example["question_type"],
+                    "question": example["question"],
+                    "ground_truth": example["answer"],
+                    "model_prediction": prediction,
+                    "visual_indices": example.get("visual_indices", []),
+                    "matched_by": match_method
+                }
+                results_details.append(result_entry)
+        
+        print(f"Successfully matched {matched_count}/{len(predictions_data)} predictions to examples")
+        if unmatched_keys:
+            print(f"Unmatched keys sample: {unmatched_keys[:3]}")
+        
+        if not all_predictions:
+            raise ValueError("No predictions could be matched to examples")
         
         # Compute metrics using the existing compute_metrics method
-        metrics = self.compute_metrics(predictions, targets, question_types[:len(predictions)])
+        metrics = self.compute_metrics(all_predictions, all_targets, all_question_types)
         
-        # Create detailed results
+        # Create results structure similar to evaluate method
         results = {
             "metadata": {
                 "model_name": "gemini-batch",
                 "timestamp": datetime.now().isoformat(),
                 "dataset": "ERQA",
-                "total_examples": len(predictions),
-                "batch_processing": True
+                "metrics_config": self.metrics_config,
+                "sample_size": self.sample_size,
+                "random_seed": self.random_seed,
+                "batch_processing": True,
+                "total_examples": len(all_predictions),
+                "matched_examples": matched_count,
+                "total_batch_results": len(predictions_data),
+                "unmatched_count": len(unmatched_keys)
             },
+            "predictions": results_details,
             "metrics": metrics,
-            "summary": {
-                "total_predictions": len(predictions),
-                "processing_mode": "batch"
+            "debug_info": {
+                "sample_mapping_keys": list(image_to_example.keys())[:10],
+                "sample_extracted_keys": [p['image_key'] for p in predictions_data[:10]],
+                "unmatched_sample": unmatched_keys[:5] if unmatched_keys else []
             }
         }
         
         # Save detailed results
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = os.path.join(self.output_dir, f"erqa_batch_results_{timestamp}.json")
         os.makedirs(self.output_dir, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        sample_suffix = f"_sample{len(all_predictions)}" if len(all_predictions) != len(self.data) else ""
+        output_file = os.path.join(
+            self.output_dir,
+            f"erqa_batch_predictions{sample_suffix}_{timestamp}.json"
+        )
         
         with open(output_file, 'w') as f:
             json.dump(results, f, indent=2)
@@ -415,4 +586,10 @@ class ERQATask(BaseTask):
         print(f"Batch evaluation results saved to {output_file}")
         print(f"Metrics: {metrics}")
         
-        return metrics
+        return {
+            "total_predictions": len(results["predictions"]),
+            "output_file": output_file,
+            "matched_examples": matched_count,
+            "unmatched_examples": len(unmatched_keys),
+            **metrics
+        }
