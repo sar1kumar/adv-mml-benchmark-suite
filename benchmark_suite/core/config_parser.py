@@ -149,7 +149,7 @@ class ConfigParser:
                 raise TypeError(f"Adversarial field '{field}' must be of type {field_type.__name__}")
         
         # Validate generator type
-        valid_generators = ["siglip_embedding", "vqa", "fgsm", "pgd"]
+        valid_generators = ["siglip_embedding", "vqa", "fgsm", "pgd", "text_overlay"]
         if adversarial_config["generator_type"] not in valid_generators:
             raise ValueError(f"Generator type must be one of {valid_generators}, got '{adversarial_config['generator_type']}'")
         
