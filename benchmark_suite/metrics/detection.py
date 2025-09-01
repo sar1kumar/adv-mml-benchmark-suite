@@ -1,6 +1,6 @@
 from typing import List, Dict
 import numpy as np
-from .base_metric import BaseMetric
+from benchmark_suite.metrics.base_metric import BaseMetric
 
 class Detection(BaseMetric):
     def __init__(self, iou_threshold: float = 0.5):
@@ -21,53 +21,97 @@ class Detection(BaseMetric):
         
         return intersection / union if union > 0 else 0
     
-    def compute(self, predictions: List[Dict], references: List[Dict], **kwargs) -> Dict[str, float]:
+    def compute(self, predictions: List[Dict], references: List[Dict], **kwargs) -> float:
         """
-        Compute detection metrics (mAP, precision, recall).
+        Compute detection metrics for SME task.
         
         Args:
-            predictions: List of dicts containing predicted boxes and classes
-            references: List of dicts containing ground truth boxes and classes
+            predictions: List of prediction dictionaries containing model responses
+            references: List of reference dictionaries containing 'boxes' field
             
         Returns:
-            Dict containing mAP, precision, and recall scores
+            float: Average IOU score across all valid box matches
         """
-        total_precision = []
-        total_recall = []
+        total_ious = []
         
         for pred, ref in zip(predictions, references):
-            matched = set()
-            tp = 0
-            
-            for pred_box in pred['boxes']:
-                best_iou = 0
-                best_idx = -1
+            try:
+                # Parse predicted boxes from model_prediction
+                pred_boxes = []
                 
-                for i, ref_box in enumerate(ref['boxes']):
-                    if i in matched:
-                        continue
-                        
-                    iou = self._compute_iou(pred_box, ref_box)
-                    if iou > best_iou and iou >= self.iou_threshold:
-                        best_iou = iou
-                        best_idx = i
+                # Handle new JSON format
+                if isinstance(pred, dict) and isinstance(pred.get("content", {}), dict):
+                    content = pred["content"]
+                    if "parts" in content and len(content["parts"]) > 0:
+                        text = content["parts"][0].get("text", "")
+                        # Extract boxes from the format "Boxes:\n{BOX0}: [x1, y1, x2, y2]"
+                        lines = text.split('\n')
+                        for line in lines:
+                            if '{BOX' in line and ']' in line:
+                                try:
+                                    box_str = line[line.index('['): line.index(']')+1]
+                                    box = eval(box_str)
+                                    if len(box) == 4:  # Ensure valid box format [x1, y1, x2, y2]
+                                        pred_boxes.append(box)
+                                except:
+                                    continue
+                else:
+                    # Fallback to old format
+                    pred_lines = pred.get('model_prediction', '').split('\n')
+                    for line in pred_lines:
+                        if '{BOX' in line and ']' in line:
+                            try:
+                                box_str = line[line.index('['): line.index(']')+1]
+                                box = eval(box_str)
+                                if len(box) == 4:  # Ensure valid box format [x1, y1, x2, y2]
+                                    pred_boxes.append(box)
+                            except:
+                                continue
                 
-                if best_idx >= 0:
-                    tp += 1
-                    matched.add(best_idx)
-            
-            precision = tp / len(pred['boxes']) if pred['boxes'] else 0
-            recall = tp / len(ref['boxes']) if ref['boxes'] else 0
-            
-            total_precision.append(precision)
-            total_recall.append(recall)
+                # Get reference boxes from the nested structure
+                ref_boxes = []
+                if isinstance(ref.get('boxes', {}), dict):
+                    for obj_boxes in ref['boxes'].values():  # Iterate through objects
+                        for box_group in obj_boxes:  # Iterate through box groups
+                            for box in box_group:  # Get individual boxes
+                                if len(box) == 4:  # Ensure valid box format
+                                    ref_boxes.append(box)
+                
+                # Calculate IOUs between predicted and reference boxes
+                if pred_boxes and ref_boxes:
+                    # For each predicted box, find the best matching reference box
+                    for pred_box in pred_boxes:
+                        ious = [self._calculate_iou(pred_box, ref_box) for ref_box in ref_boxes]
+                        if ious:
+                            total_ious.append(max(ious))  # Take the highest IOU for this predicted box
+                            
+            except Exception as e:
+                print(f"Error computing IOU: {e}")
+                continue
         
-        avg_precision = np.mean(total_precision)
-        avg_recall = np.mean(total_recall)
-        f1 = 2 * (avg_precision * avg_recall) / (avg_precision + avg_recall) if (avg_precision + avg_recall) > 0 else 0
+        # Return mean IOU across all valid matches
+        return sum(total_ious) / len(total_ious) if total_ious else 0.0
+
+    def _calculate_iou(self, box1: List[float], box2: List[float]) -> float:
+        """Calculate Intersection over Union between two boxes"""
+        # Extract coordinates
+        x1_1, y1_1, x2_1, y2_1 = box1
+        x1_2, y1_2, x2_2, y2_2 = box2
         
-        return {
-            'mAP': f1,
-            'precision': avg_precision,
-            'recall': avg_recall
-        }
+        # Calculate intersection coordinates
+        x1_i = max(x1_1, x1_2)
+        y1_i = max(y1_1, y1_2)
+        x2_i = min(x2_1, x2_2)
+        y2_i = min(y2_1, y2_2)
+        
+        # Calculate areas
+        if x2_i < x1_i or y2_i < y1_i:
+            return 0.0  # No intersection
+            
+        intersection = (x2_i - x1_i) * (y2_i - y1_i)
+        box1_area = (x2_1 - x1_1) * (y2_1 - y1_1)
+        box2_area = (x2_2 - x1_2) * (y2_2 - y1_2)
+        union = box1_area + box2_area - intersection
+        
+        return intersection / union if union > 0 else 0.0
+        
