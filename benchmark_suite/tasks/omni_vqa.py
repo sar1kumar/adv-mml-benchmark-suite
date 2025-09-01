@@ -214,13 +214,7 @@ class OmniMedVQATask(BaseTask):
         """Format OmniMedVQA question with context and options if available"""
         prompt = "You are a medical expert. Please answer the following question about the medical image.\n\n"
         
-        # Add dataset and modality information
-        prompt += f"Dataset: {example['dataset']}\n"
-        if "modality_type" in example:
-            prompt += f"Modality: {example['modality_type']}\n"
-        
         # Add question type and question
-        prompt += f"Question Type: {example['question_type']}\n"
         prompt += f"Question: {example['question']}\n"
         
         # Add options if available
@@ -491,7 +485,7 @@ class OmniMedVQATask(BaseTask):
             image_filename = self._convert_to_jpg_path(example.get("image_path", ""))
             
             batch_example = {
-                "example_id": f"omnimed_{idx}",
+                "example_id": example.get("question_id"),  # Add explicit question_id field
                 "dataset": example.get("dataset"),
                 "question_type": example.get("question_type"),
                 "question": example.get("question"),
@@ -516,6 +510,7 @@ class OmniMedVQATask(BaseTask):
         gcs_image_path = f"{gcs_image_prefix}/{example['image_path']}"
         
         return {
+            "custom_id": example["example_id"],  # Add custom_id for proper tracking
             "request": {
                 "contents": [
                     {
@@ -546,43 +541,64 @@ class OmniMedVQATask(BaseTask):
         with open(metadata_path, 'r') as f:
             metadata = json.load(f)
         
+        # Create mapping from question_id to metadata
+        metadata_map = {item["question_id"]: item for item in metadata if "question_id" in item}
+        
         # Load and parse batch results
         predictions = []
-        with open(batch_results_path, 'r') as f:
-            for line in f:
-                try:
-                    result = json.loads(line.strip())
-                    response_text = result.get('response', {}).get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
-                    predictions.append(response_text.strip())
-                except (json.JSONDecodeError, KeyError, IndexError) as e:
-                    print(f"Warning: Could not parse batch result line: {line}. Error: {e}")
-                    predictions.append("")
-        
-        # Verify matching numbers
-        if len(predictions) != len(metadata):
-            raise ValueError(f"Mismatch: {len(predictions)} predictions vs {len(metadata)} metadata entries")
-        
-        # Extract information from original data for metrics computation
-        targets = [item["ground_truth"] for item in metadata]
+        targets = []
         question_types = []
         datasets = []
         options_list = []
+        matched_count = 0
         
-        # Reconstruct data for compute_metrics method
-        if self.data:
-            for example in self.data[:len(predictions)]:
-                question_types.append(example.get("question_type", "unknown"))
-                datasets.append(example.get("dataset", "unknown"))
-                options_list.append({
-                    "A": example.get("option_A", ""),
-                    "B": example.get("option_B", ""),
-                    "C": example.get("option_C", ""),
-                    "D": example.get("option_D", "")
-                })
-        else:
-            question_types = ["unknown"] * len(targets)
-            datasets = ["unknown"] * len(targets)
-            options_list = [{}] * len(targets)
+        with open(batch_results_path, 'r') as f:
+            for line_num, line in enumerate(f):
+                try:
+                    result = json.loads(line.strip())
+                    
+                    # Extract response
+                    response_text = result.get('response', {}).get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
+                    
+                    # Try to get question_id from custom_id if available
+                    question_id = result.get('custom_id')
+                    
+                    if question_id and question_id in metadata_map:
+                        # Use metadata mapping for accurate ground truth
+                        meta_item = metadata_map[question_id]
+                        predictions.append(response_text.strip())
+                        targets.append(meta_item["ground_truth"])
+                        
+                        # Get additional info from original data if available
+                        original_data = meta_item.get("original_data", {})
+                        question_types.append(original_data.get("question_type", "unknown"))
+                        datasets.append(original_data.get("dataset", "unknown"))
+                        options_list.append(original_data.get("options", {}))
+                        matched_count += 1
+                        
+                    elif line_num < len(metadata):
+                        # Fallback to line order (less reliable)
+                        meta_item = metadata[line_num]
+                        predictions.append(response_text.strip())
+                        targets.append(meta_item["ground_truth"])
+                        
+                        original_data = meta_item.get("original_data", {})
+                        question_types.append(original_data.get("question_type", "unknown"))
+                        datasets.append(original_data.get("dataset", "unknown"))
+                        options_list.append(original_data.get("options", {}))
+                    else:
+                        print(f"Warning: Could not match result at line {line_num}")
+                        continue
+                        
+                except Exception as e:
+                    print(f"Warning: Could not parse line {line_num}: {e}")
+                    continue
+        
+        print(f"Matched {matched_count}/{len(predictions)} results using question_id")
+        
+        # Verify we have data to evaluate
+        if not predictions:
+            raise ValueError("No valid predictions found for evaluation")
         
         # Compute metrics using the existing compute_metrics method
         metrics = self.compute_metrics(predictions, targets, question_types, datasets, options_list)
@@ -595,11 +611,13 @@ class OmniMedVQATask(BaseTask):
                 "dataset": "OmniMedVQA",
                 "access_type": self.access_type,
                 "total_examples": len(predictions),
+                "matched_by_id": matched_count,
                 "batch_processing": True
             },
             "metrics": metrics,
             "summary": {
                 "total_predictions": len(predictions),
+                "matched_by_question_id": matched_count,
                 "processing_mode": "batch"
             }
         }
