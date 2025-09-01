@@ -9,6 +9,7 @@ from benchmark_suite.adversarial.generators.siglip_ssa_generator import (
     create_siglip_generator_config
 )
 from benchmark_suite.adversarial.generators.vqa_generator import VQAAdversarialGenerator
+from benchmark_suite.adversarial.generators.text_overlay_generator import TextOverlayAdversarialGenerator
 from benchmark_suite.adversarial.generators.base_generator import BaseAdversarialGenerator
 
 
@@ -52,6 +53,24 @@ class AdversarialManager:
                         "image_size": adv_config.get("image_size", 224)
                     }
                     generator = VQAAdversarialGenerator(generator_config)
+                    
+                elif generator_type == "text_overlay":
+                    generator_config = {
+                        "epsilon": adv_config.get("epsilon", 0.1),
+                        "num_steps": adv_config.get("attack_steps", 10),
+                        "batch_size": adv_config.get("batch_size", 1),
+                        "task_type": task_name,  # Pass task name for task-specific configurations
+                        "output_dir": adv_config.get("adversarial_output_dir", f"./adversarial_images/{task_name}"),
+                        "overlay_techniques": adv_config.get("overlay_techniques", [
+                            "transparent_overlay", "invisible_overlay", "steganographic_text",
+                            "semantic_confusion", "visual_distraction", "edge_aligned_text"
+                        ]),
+                        "font_sizes": adv_config.get("font_sizes", [20, 24, 32]),
+                        "transparency_levels": adv_config.get("transparency_levels", [0.3, 0.5, 0.7]),
+                        "confusion_texts": adv_config.get("confusion_texts", None),  # Will be auto-generated based on task
+                        "distraction_texts": adv_config.get("distraction_texts", None)
+                    }
+                    generator = TextOverlayAdversarialGenerator(generator_config)
                     
                 else:
                     raise ValueError(f"Unsupported generator type: {generator_type}")
@@ -113,21 +132,39 @@ class AdversarialManager:
                 final_adversarial_path = os.path.join(output_dir, final_adversarial_filename)
                 
                 # Generate adversarial image with explicit output path
-                temp_adversarial_path = generator.generate_image_perturbation(image_path, final_adversarial_path)
-                
-                if temp_adversarial_path == image_path:
-                    # Attack failed, use original
-                    adversarial_mapping[image_path] = image_path
-                    continue
-                
-                # If the generator saved it where we wanted, use that path
-                if os.path.exists(final_adversarial_path):
-                    adversarial_mapping[image_path] = final_adversarial_path
-                    self.logger.info(f"✓ Adversarial image saved: {final_adversarial_path}")
+                if hasattr(generator, '__class__'):
+                    class_name = generator.__class__.__name__
+                    if 'SigLIP' in class_name or 'TextOverlay' in class_name:
+                        temp_adversarial_path = generator.generate_image_perturbation(image_path, final_adversarial_path)
+                        # For these generators, temp_adversarial_path should equal final_adversarial_path
+                        if temp_adversarial_path == final_adversarial_path and os.path.exists(final_adversarial_path):
+                            adversarial_mapping[image_path] = final_adversarial_path
+                            self.logger.info(f"✓ Adversarial image saved: {final_adversarial_path}")
+                        elif temp_adversarial_path != image_path:
+                            # Fallback: generator returned a different valid path
+                            adversarial_mapping[image_path] = temp_adversarial_path
+                            self.logger.warning(f"Adversarial image saved to unexpected location: {temp_adversarial_path}")
+                        else:
+                            # Attack failed
+                            adversarial_mapping[image_path] = image_path
+                    else:
+                        temp_adversarial_path = generator.generate_image_perturbation(image_path)
+                        if temp_adversarial_path == image_path:
+                            # Attack failed, use original
+                            adversarial_mapping[image_path] = image_path
+                            continue
+                        
+                        # If the generator saved it where we wanted, use that path
+                        if os.path.exists(final_adversarial_path):
+                            adversarial_mapping[image_path] = final_adversarial_path
+                            self.logger.info(f"✓ Adversarial image saved: {final_adversarial_path}")
+                        else:
+                            # Fallback: generator returned a different path
+                            adversarial_mapping[image_path] = temp_adversarial_path
+                            self.logger.warning(f"Adversarial image saved to unexpected location: {temp_adversarial_path}")
                 else:
-                    # Fallback: generator returned a different path
+                    temp_adversarial_path = generator.generate_image_perturbation(image_path)
                     adversarial_mapping[image_path] = temp_adversarial_path
-                    self.logger.warning(f"Adversarial image saved to unexpected location: {temp_adversarial_path}")
                     
             except Exception as e:
                 self.logger.error(f"Failed to generate adversarial image for {image_path}: {e}")
