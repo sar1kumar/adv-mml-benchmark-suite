@@ -1,0 +1,31 @@
+models:
+  gemini-2.5-pr-batch:
+    type: "api"
+    mode: "batch"
+    model_name: "gemini-2.5-pro"
+    project_id: "project_id" # <-- IMPORTANT: CHANGE THIS to reflect your GCP project ID
+    location: "us-central1"
+    max_tokens: 8192
+    temperature: 1.0
+    top_k: 64
+    top_p: 0.95
+
+    batch_config:
+      gcs_bucket: "gs://gsoc_benchmark_25" # <-- IMPORTANT: CHANGE THIS to your actual GCS bucket path
+      upload_images: false 
+      gcs_image_prefix: "gs://gsoc_benchmark_25/omnimed_vqa/OmniMedVQA" # <--- Not required if already uploaded
+      output_prefix: "gs://gsoc_benchmark_25/batch_output/omnimed/gemini_2_5_pro"
+      wait_for_completion: true
+      poll_interval: 60
+
+tasks:
+  omnimed_vqa:
+    type: "omnimed_vqa"  # This matches the task registration in TaskManager
+    data_path: "/data/omnimed_vqa/OmniMedVQA" # <-- IMPORTANT: CHANGE THIS data path to the OmniMedVQA local dataset
+    access_type: "Open-access"  # or "Restricted-access" - specific to OmniMed
+    sample_size: 100  # Optional: limit examples per dataset for testing
+    random_seed: 42
+    metrics: ["accuracy"]
+
+logging:
+  output_dir: "results"

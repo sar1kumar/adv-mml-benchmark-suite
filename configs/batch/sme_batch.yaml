@@ -1,0 +1,34 @@
+models:
+  gemini-2.0-flash-lite-batch:
+    type: "api"
+    mode: "batch"
+    model_name: "gemini-2.0-flash-lite-001"
+    project_id: "project_id" # <-- IMPORTANT: CHANGE THIS
+    location: "us-central1"
+    max_tokens: 8192
+    temperature: 1.0
+    top_k: 64
+    top_p: 0.95
+
+    batch_config:
+      gcs_bucket: "gs://gsoc_benchmark_25" # <-- IMPORTANT: CHANGE THIS
+      upload_images: false 
+      gcs_image_prefix: "gs://gsoc_benchmark_25/sme/images" # <--- Not required if already uploaded
+      output_prefix: "gs://gsoc_benchmark_25/batch_output/sme/gemini_2_0_flash_lite"
+      wait_for_completion: true
+      poll_interval: 60
+
+tasks:
+  sme:
+    type: "sme"
+    data_path: "data/sme/images" # Local file path to the SME dataset
+    split: ["test"]  # Can be ["train", "val", "test"] - SME specific
+    sample_size: 500  # Optional: limit examples for testing
+    random_seed: 42
+    prompt_config:  # SME specific prompt configuration
+      num_prompts: 8
+      method: "random"  # or other methods supported by SME prompts
+    metrics: ["accuracy", "mean_iou"]  # SME supports both accuracy and IOU metrics
+
+logging:
+  output_dir: "results"

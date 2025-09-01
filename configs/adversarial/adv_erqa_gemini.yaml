@@ -1,0 +1,54 @@
+models:
+  gemini-2.0-flash-lite:
+    type: "api"
+    mode: "realtime"  # or "batch"
+    model_name: "gemini-2.0-flash-lite"
+    api_key: "YOUR_API_KEY"
+    max_tokens: 128000
+    temperature: 1.0
+    top_k: 64
+    top_p: 0.95
+
+tasks:
+  erqa:
+    type: "erqa"
+    data_path: "data/erqa"
+    sample_size: 1
+    random_seed: 42
+    split: ["test"]
+    metrics: ["accuracy"]
+    
+    # Adversarial attack configuration
+    adversarial:
+      enabled: true
+      generator_type: "siglip_embedding"  # Options: siglip_embedding, vqa, fgsm, pgd
+      attack_mode: "attraction"  # Options: repulsion, attraction, untargeted, targeted
+      
+      # Attack parameters
+      epsilon: 0.03137  # 32/255 in normalized scale
+      attack_steps: 3
+      attack_step_size: 0.00392  # 1/255 in normalized scale
+      
+      # Target configuration (for attraction mode)
+      target_option: "E"  # Will create images saying "Answer is option: E" Can be word, number, sentence or letter
+      
+      # Output configuration
+      save_adversarial_images: true
+      adversarial_output_dir: "data/adversarial_images/erqa"
+      cleanup_after_completion: false
+      
+      # Performance options
+      force_cpu: true
+      batch_size: 1
+      
+      # Model-specific options
+      siglip_model_name: "google/siglip-base-patch16-224"
+
+logging:
+  wandb:
+    project: "multimodal-benchmarks"
+    entity: "adversarial-attacks"
+    enabled: true
+    run_name: "erqa-adversarial-test"
+  save_predictions: true
+  output_dir: "results/adversarial"
